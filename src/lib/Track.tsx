@@ -1,7 +1,8 @@
-const railWidth = 4;
-const tieWidth = 10;
+const railWidth = 8; // Railwidth /2
+const tieWidth = 15; // Width of track /2
 const tieHeight = 2;
-const tieSpacing = 15;
+const tieSpacing = 6.25;
+const tieThikness = 3;
 const gridSize = 5;
 
 abstract class TrackPieceBase {
@@ -34,14 +35,12 @@ abstract class TrackPieceBase {
         this.rotation = ((rotation % 360) + 360) % 360;
     }
 
-    protected setupContext(ctx: CanvasRenderingContext2D, isSelected = false) {
+    protected setupContext(ctx: CanvasRenderingContext2D) {
         const center = this.getCenter();
         ctx.beginPath();
         ctx.arc(center.x, center.y, 5, 0, 2 * Math.PI);
         ctx.fillStyle = 'blue';
         ctx.fill();
-        ctx.strokeStyle = isSelected ? 'red' : '#000';
-        ctx.lineWidth = railWidth;
     }
 }
 
@@ -55,10 +54,22 @@ class TrackStraightPiece extends TrackPieceBase {
     }
 
     draw(ctx: CanvasRenderingContext2D, isSelected?: boolean) {
-        this.setupContext(ctx, isSelected);
+        this.setupContext(ctx);
         ctx.save();
         ctx.translate(this.x + this.length / 2, this.y);
         ctx.rotate(ToRadians(this.rotation));
+
+        
+        for (let i = -this.length / 2 + tieThikness; i < this.length / 2 - tieThikness/2 ; i += tieSpacing) {
+            ctx.beginPath();
+            ctx.moveTo(i, -tieWidth);
+            ctx.lineTo(i, tieWidth);
+            ctx.strokeStyle = isSelected ? 'red' : '#000';
+            ctx.lineWidth = tieThikness;
+            ctx.stroke();   
+        }
+        ctx.strokeStyle = isSelected ? 'red' : '#9B9B97';
+        ctx.lineWidth = 2;
 
         ctx.beginPath();
         ctx.moveTo(-this.length / 2, -railWidth);
@@ -67,12 +78,7 @@ class TrackStraightPiece extends TrackPieceBase {
         ctx.lineTo(this.length / 2, railWidth);
         ctx.stroke();
 
-        for (let i = -this.length / 2 + tieSpacing / 2; i < this.length / 2; i += tieSpacing) {
-            ctx.beginPath();
-            ctx.moveTo(i, -tieWidth);
-            ctx.lineTo(i, tieWidth);
-            ctx.stroke();
-        }
+
         ctx.restore();
     }
 
@@ -113,22 +119,14 @@ class TrackCurvedPiece extends TrackPieceBase {
     }
 
     draw(ctx: CanvasRenderingContext2D, isSelected?: boolean) {
-        this.setupContext(ctx, isSelected);
-        ctx.save();
-        ctx.translate(this.x, this.y);
-
+        this.setupContext(ctx);
         const { origin, startAngle, endAngle } = this.getArc(0,0);
 
-        ctx.beginPath();
-        ctx.arc(origin.x, origin.y, this.radius - railWidth, startAngle, endAngle);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.arc(origin.x, origin.y, this.radius + railWidth, startAngle, endAngle);
-        ctx.stroke();
-
-        ctx.translate(origin.x, origin.y);
+        ctx.save(); 
+        ctx.translate(this.x + origin.x, this.y + origin.y);
         const arcLength = this.radius * (endAngle - startAngle);
-        for (let i = tieSpacing / 2; i < arcLength + tieSpacing / 2; i += tieSpacing) {
+        for (let i =  tieThikness; i < arcLength -  tieThikness/2; i += tieSpacing) {
+
             const angle = startAngle + (i / arcLength) * (endAngle - startAngle);
             ctx.save();
             ctx.rotate(angle);
@@ -136,9 +134,23 @@ class TrackCurvedPiece extends TrackPieceBase {
             ctx.moveTo(this.radius - tieWidth, -tieHeight / 2);
             ctx.lineTo(this.radius + tieWidth, -tieHeight / 2);
             ctx.closePath();
+            ctx.strokeStyle = isSelected ? 'red' : '#000';
+            ctx.lineWidth = tieThikness;
             ctx.stroke();
             ctx.restore();
         }
+        ctx.restore();
+
+        ctx.save(); 
+        ctx.translate(this.x, this.y);
+        ctx.beginPath();
+        ctx.strokeStyle = isSelected ? 'red' : '#9B9B97';
+        ctx.lineWidth = 2;
+        ctx.arc(origin.x, origin.y, this.radius - railWidth, startAngle, endAngle);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(origin.x, origin.y, this.radius + railWidth, startAngle, endAngle);
+        ctx.stroke();
         ctx.restore();
     }
 
