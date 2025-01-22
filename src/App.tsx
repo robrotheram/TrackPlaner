@@ -1,6 +1,6 @@
 import React from 'react'
 import { ModlerProvider } from './context/ModlerContext'
-import { TrackCurvedPiece, TrackStraightPiece } from './lib/Track'
+import { TrackCurvedPiece, TrackStraightPiece, TrackPointPiece } from './lib/Track'
 import { ModelRailwayToolbar } from './components/ModalRailwayToolbar'
 
 export const Logo = () => {
@@ -136,13 +136,20 @@ const tracks  = [
   },
 ]
 
-const trackPieces = tracks.map((track) => {
-  if ('length' in track) {
-    return new TrackStraightPiece(track.code, track.x, track.y, track.rotation, track.length!)
-  } else {
-    return new TrackCurvedPiece(track.code, track.x, track.y, track.rotation, track.startAngle, track.endAngle, track.radius)
-  }
-}) 
+const trackPieces = [
+  new TrackStraightPiece("", 100, 100, 90, 168),
+  new TrackStraightPiece("", 167, 268, 90, 168),
+   new TrackPointPiece("", 100, 268, 270, 0, 22.5, 438),
+   new TrackPointPiece("", 167, 100, 90, 0, 22.5, 438),
+  //  new TrackPointPiece("", 500, 500, 180, 0, 22.5, 438)
+]
+// tracks.map((track) => {
+//   if ('length' in track) {
+//     return new TrackStraightPiece(track.code, track.x, track.y, track.rotation, track.length!)
+//   } else {
+//     return new TrackCurvedPiece(track.code, track.x, track.y, track.rotation, track.startAngle, track.endAngle, track.radius)
+//   }
+// }) 
 
 function App() {
   return (
