@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { TrackPieceBase } from '../lib/Track';
 import { useModlerContext } from '../context/ModlerContext';
+import { Button } from './ui/button';
+import { RotateCcwSquare, RotateCcwSquareIcon, RotateCwSquare } from 'lucide-react';
 
 const Grid: React.FC<{ canvasRef: React.RefObject<HTMLCanvasElement> }> = ({ canvasRef }) => {
     const { state, setTracks: save, selectTrack, setScale } = useModlerContext();
@@ -10,6 +12,8 @@ const Grid: React.FC<{ canvasRef: React.RefObject<HTMLCanvasElement> }> = ({ can
     const [dragging, setDragging] = useState<boolean>(false);
     const [trackPieces, setTrackPieces] = useState<TrackPieceBase[]>(state.tracks);
     const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+    const [rotation, setRotation] = useState(0);
+
     const gridSize = 100;
     const scale = state.scale;
 
@@ -43,11 +47,11 @@ const Grid: React.FC<{ canvasRef: React.RefObject<HTMLCanvasElement> }> = ({ can
                 context.save();
                 context.fillStyle = 'white'; // Set background to white
                 context.fillRect(0, 0, canvas.width, canvas.height);
+                
                 context.restore();
                 context.save();
                 context.translate(offset.x, offset.y);
                 context.scale(scale, scale);
-
                 // Draw grid
                 context.strokeStyle = '#e0e0e0';
                 context.lineWidth = 1;
@@ -90,14 +94,15 @@ const Grid: React.FC<{ canvasRef: React.RefObject<HTMLCanvasElement> }> = ({ can
                 context.save();
                 context.translate(offset.x, offset.y);
                 context.scale(scale, scale);
-
+                
                 trackPieces.forEach((piece, index) => piece.draw(context, index === state.selectedPiece));
                 context.restore();
+                
             };
 
             draw();
         }
-    }, [scale, offset, trackPieces, state.selectedPiece, mousePos]);
+    }, [scale, offset, trackPieces, state.selectedPiece, mousePos, rotation]);
 
     const selectTrackPiece = (x: number, y: number) => {
         selectTrack(null);
@@ -179,9 +184,7 @@ const Grid: React.FC<{ canvasRef: React.RefObject<HTMLCanvasElement> }> = ({ can
                 onContextMenu={(e) => e.preventDefault()}
                 style={{ display: 'block', width: '100%', height: '100%', cursor: isPanning ? 'pointer' : 'grab' }}
             />
-            {/* <div className="absolute top-20 bottom-0 overflow-auto right-0 w-[400px] p-4 bg-white bg-opacity-50">
-                <pre>{JSON.stringify({ trackPieces, mousePos: realMousePos }, null, 2)}</pre>
-            </div> */}
+           
         </>
     );
 };

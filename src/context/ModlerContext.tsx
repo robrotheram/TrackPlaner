@@ -1,170 +1,85 @@
 import { TrackPieceBase } from '@/lib/Track';
-import React, { createContext, useContext, useReducer, ReactNode, useEffect } from 'react';
+import { Point } from '@/lib/Track/base';
+import { CanvasState, Tool } from '@/types';
+import React, { createContext, useContext, useReducer, ReactNode, useEffect, useState } from 'react';
 
-interface State {
-    tracks: TrackPieceBase[];
-    history: TrackPieceBase[][];
-    future: TrackPieceBase[][];
-    selectedPiece: number | null; // Add selectedPiece to state
-    scale: number; // Add scale to state
+
+
+const initialState: CanvasState = {
+    scale: 1,
+    rotation: 0,
+    offsetX: 0,
+    offsetY: 0,
+    isDragging: false,
+    isPanning: false,
+    lastX: 0,
+    lastY: 0,
+    pinchDistance: 0,
+    pinchAngle: 0,
+    tracks: [],
 }
 
-type Action =
-    | { type: 'SET_TRACKS'; tracks: TrackPieceBase[] }
-    | { type: 'ADD_TRACK'; tracks: TrackPieceBase }
-    | { type: 'UNDO' }
-    | { type: 'REDO' }
-    | { type: 'DELETE_TRACK' }
-    | { type: 'SELECT_TRACK'; index: number | null } // Add SELECT_TRACK action
-    | { type: 'SET_SCALE'; scale: number }; // Add SET_SCALE action
-
-const initialState: State = {
-    tracks: [],
-    history: [],
-    future: [],
-    selectedPiece: null, // Initialize selectedPiece
-    scale: 1, // Initialize scale
-};
-
 export const ModlerContext = createContext<{
-    state: State;
-    setTracks: (tracks: TrackPieceBase[]) => void;
-    addTrack: (track: TrackPieceBase) => void;
-    undo: () => void;
-    redo: () => void;
-    deleteTrack: () => void;
-    selectTrack: (index: number | null) => void; // Add selectTrack function
+    state: CanvasState;
     setScale: (scale: number) => void; // Add setScale function
+    setRotation: (scale: number) => void; // Add setScale function
+    setPan:(delta:Point) => void
+    setTool:(tool:Tool) => void
+    addTrack:(track:TrackPieceBase) => void
+    setState: React.Dispatch<React.SetStateAction<CanvasState>>;
 }>({
     state: initialState,
-    setTracks: () => {},
-    addTrack: () => {},
-    undo: () => {},
-    redo: () => {},
-    deleteTrack: () => {},
-    selectTrack: () => {}, // Initialize selectTrack
-    setScale: () => {}, // Initialize setScale
+    setScale: () => { }, // Initialize setScale
+    setRotation: () => { }, // Initialize setScale
+    setPan: () => { }, // Initialize setScale
+    setState: ()=> { }, // Initialize setScale
+    setTool: ()=> { }, // Initialize setScale
+    addTrack: ()=> { }, // Initialize setScale
 });
 
-const modlerReducer = (state: State, action: Action): State => {
-    console.log(action);
-    switch (action.type) {
-        case 'SET_TRACKS':
-            return {
-                ...state,
-                tracks: action.tracks.map(track => track.clone()),
-                history: [...state.history, state.tracks.map(track => track.clone())],
-                future: [],
-            };
-        case 'UNDO': {
-            if (state.history.length === 0) return state;
-            const previousTracks = state.history[state.history.length - 1];
-            const newHistory = state.history.slice(0, -1);
-            return {
-                ...state,
-                tracks: previousTracks.map(track => track.clone()),
-                history: newHistory,
-                future: [state.tracks.map(track => track.clone()), ...state.future],
-            };
-        }
-        case 'REDO': {
-            if (state.future.length === 0) return state;
-            const nextTracks = state.future[0];
-            const newFuture = state.future.slice(1);
-            return {
-                ...state,
-                tracks: nextTracks.map(track => track.clone()),
-                history: [...state.history, state.tracks.map(track => track.clone())],
-                future: newFuture,
-            };
-        }
-        case 'ADD_TRACK':  {
-            return {
-                ...state,
-                tracks: [...state.tracks, action.tracks],
-                history: [...state.history, state.tracks.map(track => track.clone())],
-                future: [],
-            };
-        }
-        case 'DELETE_TRACK': {
-            if (state.selectedPiece === null) return state;
-            const newTracks = state.tracks.filter((_, index) => index !== state.selectedPiece);
-            return {
-                ...state,
-                tracks: newTracks,
-                history: [...state.history, state.tracks.map(track => track.clone())],
-                future: [],
-                selectedPiece: null, // Ensure no track is selected after deletion
-            };
-        }
-        case 'SELECT_TRACK':
-            return {
-                ...state,
-                selectedPiece: action.index,
-            };
-        case 'SET_SCALE':
-            return {
-                ...state,
-                scale: action.scale,
-            };
-        default:
-            return state;
-    }
-};
 
 export const ModlerProvider = ({ children, initialTracks = [] }: { children: ReactNode; initialTracks?: TrackPieceBase[] }) => {
-    const initialStateWithTracks = {
-        ...initialState,
-        tracks: initialTracks,
-    };
-
-    const [state, dispatch] = useReducer(modlerReducer, initialStateWithTracks);
-
-    const setTracks = (tracks: TrackPieceBase[]) => {
-        dispatch({ type: 'SET_TRACKS', tracks });
-    };
-
-    const addTrack = (tracks: TrackPieceBase) => {
-        dispatch({ type: 'ADD_TRACK', tracks });
-    };
-
-    const undo = () => {
-        dispatch({ type: 'UNDO' });
-    };
-
-    const redo = () => {
-        dispatch({ type: 'REDO' });
-    };
-
-    const deleteTrack = () => {
-        dispatch({ type: 'DELETE_TRACK' });
-    };
-
-    const selectTrack = (index: number | null) => {
-        dispatch({ type: 'SELECT_TRACK', index });
-    };
-
+    const [state, setState] = useState<CanvasState>({...initialState, tracks:initialTracks});
+    
     const setScale = (scale: number) => {
-        dispatch({ type: 'SET_SCALE', scale });
+        setState(prev => ({
+            ...prev,
+            scale: Math.min(Math.max(prev.scale + scale, 0.1), 2)
+        }));
     };
+    const setRotation = (rotation: number) => {
+        setState(prev => ({
+            ...prev,
+            rotation : prev.rotation + rotation
+        }));
+    };
+    const setPan = (delta:Point) => {
+        setState(prev => ({
+            ...prev,
+            offsetX: prev.offsetX + delta.x,
+            offsetY: prev.offsetY + delta.y
+        }));
+    }
+
+    const setTool = (tool:Tool) => {
+        setState(prev => ({
+            ...prev,
+            tool
+        }));
+    }
+
+    const addTrack = (track: TrackPieceBase) => {
+        setState(prev => ({
+            ...prev,
+            tracks:[...prev.tracks, track]
+        }));
+    }
+
 
     const handleKeyDown = (event: KeyboardEvent) => {
-        if (event.key === 'Delete' && state.selectedPiece !== null) {
-            deleteTrack();
+        if (event.key === 'Escape') {
+            setTool(null)
         }
-        if (event.ctrlKey && event.key === 'z') {
-            undo();
-        }
-        if (event.ctrlKey && event.shiftKey && event.key === 'z') {
-            undo();
-        }
-        if (event.ctrlKey && event.key === 'y') {
-            redo();
-        }
-
-        if (event.key === 'Delete' && state.selectedPiece !== null) {
-            deleteTrack();
-        }   
     };
 
     useEffect(() => {
@@ -172,9 +87,9 @@ export const ModlerProvider = ({ children, initialTracks = [] }: { children: Rea
         return () => {
             window.removeEventListener('keydown', handleKeyDown);
         };
-    }, [state.selectedPiece]);
+    }, []);
 
-    const contextValue = React.useMemo(() => ({ state, setTracks, undo, redo, addTrack, deleteTrack, selectTrack, setScale }), [state]);
+    const contextValue = React.useMemo(() => ({ state, setRotation, setScale, setPan, setState, setTool, addTrack }), [state]);
 
     return (
         <ModlerContext.Provider value={contextValue}>

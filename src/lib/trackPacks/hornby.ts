@@ -3,7 +3,7 @@ import { TrackCurvedPiece, TrackPieceBase, TrackStraightPiece } from "@/lib/Trac
 export type TrackPack = {
     name: string;
     code: string;
-    type: "straight" | "curve";
+    type: "straight" | "curve" | "lhpoint" | "rhpoint";
     length?: number;
     radius?: number;
     angle?: number;

@@ -1,7 +1,8 @@
 import React from 'react'
 import { ModlerProvider } from './context/ModlerContext'
-import { TrackCurvedPiece, TrackStraightPiece, TrackPointPiece } from './lib/Track'
+import { TrackCurvedPiece, TrackStraightPiece } from './lib/Track'
 import { ModelRailwayToolbar } from './components/ModalRailwayToolbar'
+import { LeftHandedTrackPointPiece, RightHandedTrackPointPiece } from './lib/Track/point'
 
 export const Logo = () => {
   return <div className='flex-col justify-center items-center sm:flex hidden'>
@@ -9,7 +10,7 @@ export const Logo = () => {
       <div className='bg-red-700 w-full h-full rounded-t-full'></div>
     </div>
     <div className='bg-white border p-0.5 rounded-full '>
-      <div className='w-[200px] bg-red-700 text-center p-0.5 rounded-full border'>
+      <div className='w-[168px] bg-red-700 text-center p-0.5 rounded-full border'>
         <h1 className="text-lg font-bold tracking-wide text-white" style={{ fontFamily: 'Gill Sans, sans-serif', textTransform: "uppercase" }} >Model Planner</h1>
       </div>
     </div>
@@ -20,7 +21,7 @@ export const Logo = () => {
 }
 
 export const LogoSVG: React.FC = () => {
-  return <svg xmlns="http://www.w3.org/2000/svg" viewBox="24 24 455 125" preserveAspectRatio="none">
+  return <svg xmlns="http://www.w3.org/1680/svg" viewBox="24 24 455 125" preserveAspectRatio="none">
     <path d="M 385.119 28.703 C 404.725 28.703 420.619 44.597 420.619 64.203 L 420.619 110.203 C 420.619 129.809 404.725 145.703 385.119 145.703 L 114.115 145.703 C 94.515 145.703 78.615 129.809 78.615 110.203 L 78.615 64.203 C 78.615 44.597 94.515 28.703 114.115 28.703 L 385.119 28.703 Z" fill="white" stroke="brown" strokeWidth="1" />
     <path d="M 385.119 34.203 C 401.687 34.203 415.119 47.634 415.119 64.203 L 415.119 110.203 C 415.119 126.771 401.687 140.203 385.119 140.203 L 114.115 140.203 C 97.555 140.203 84.115 126.771 84.115 110.203 L 84.115 64.203 C 84.115 47.634 97.555 34.203 114.115 34.203 L 385.119 34.203 Z" fill="brown" stroke="none" />
     <path d="M 439.616 51.704 C 466.944 51.704 484.023 81.287 470.359 104.954 C 464.018 115.938 452.299 122.704 439.616 122.704 L 59.612 122.704 C 32.292 122.704 15.212 93.121 28.872 69.454 C 35.212 58.47 46.932 51.704 59.612 51.704 L 439.616 51.704 Z" fill="white" stroke="brown" strokeWidth="1" />
@@ -29,11 +30,12 @@ export const LogoSVG: React.FC = () => {
   </svg>
 }
 
-const tracks  = [
+const tracks = [
 
   {
     "x": 500,
     "y": 500,
+    "type": "curve",
     "rotation": 0,
     "code": "R 603",
     "startAngle": 180,
@@ -43,6 +45,7 @@ const tracks  = [
   {
     "x": 500,
     "y": 500,
+    "type": "curve",
     "rotation": 0,
     "code": "R 603",
     "startAngle": 225,
@@ -52,6 +55,7 @@ const tracks  = [
   {
     "x": 500,
     "y": 500,
+    "type": "curve",
     "rotation": 0,
     "code": "R 604",
     "startAngle": 90,
@@ -61,6 +65,7 @@ const tracks  = [
   {
     "x": 500,
     "y": 500,
+    "type": "curve",
     "rotation": 0,
     "code": "R 605",
     "startAngle": 135,
@@ -70,24 +75,27 @@ const tracks  = [
   {
     "x": 500,
     "y": 165,
+    "type": "straight",
     "rotation": 0,
     "code": "R 601",
-    "length": 200
+    "length": 168
   },
   {
     "x": 700,
     "y": 165,
+    "type": "straight",
     "rotation": 0,
     "code": "R 602",
-    "length": 200
+    "length": 168
   },
 
 
-  
+
   {
     "x": 900,
     "y": 500,
     "rotation": 0,
+    "type": "curve",
     "code": "R 603",
     "startAngle": 325,
     "endAngle": 360,
@@ -97,6 +105,7 @@ const tracks  = [
     "x": 900,
     "y": 500,
     "rotation": 0,
+    "type": "curve",
     "code": "R 603",
     "startAngle": 270,
     "endAngle": 325,
@@ -106,6 +115,7 @@ const tracks  = [
     "x": 900,
     "y": 500,
     "rotation": 0,
+    "type": "curve",
     "code": "R 604",
     "startAngle": 0,
     "endAngle": 45,
@@ -115,6 +125,7 @@ const tracks  = [
     "x": 900,
     "y": 500,
     "rotation": 0,
+    "type": "curve",
     "code": "R 605",
     "startAngle": 45,
     "endAngle": 90,
@@ -123,38 +134,42 @@ const tracks  = [
   {
     "x": 500,
     "y": 835,
+    "type": "lhpoint",
     "rotation": 0,
     "code": "R 601",
-    "length": 200
+    "length": 168
   },
   {
     "x": 700,
     "y": 835,
+    "type": "rhpoint",
     "rotation": 0,
     "code": "R 602",
-    "length": 200
+    "length": 168
   },
 ]
 
-const trackPieces = [
-  new TrackStraightPiece("", 100, 100, 90, 168),
-  new TrackStraightPiece("", 167, 268, 90, 168),
-   new TrackPointPiece("", 100, 268, 270, 0, 22.5, 438),
-   new TrackPointPiece("", 167, 100, 90, 0, 22.5, 438),
-  //  new TrackPointPiece("", 500, 500, 180, 0, 22.5, 438)
-]
-// tracks.map((track) => {
-//   if ('length' in track) {
-//     return new TrackStraightPiece(track.code, track.x, track.y, track.rotation, track.length!)
-//   } else {
-//     return new TrackCurvedPiece(track.code, track.x, track.y, track.rotation, track.startAngle, track.endAngle, track.radius)
-//   }
-// }) 
+// const trackPieces = [
+//   // new TrackStraightPiece("", 100, 100, 90, 168),
+//   // new TrackStraightPiece("", 167, 268, 90, 168),
+//   new LeftHandedTrackPointPiece("", 500, 500, 0, 168),
+//   new RightHandedTrackPointPiece("", 500, 600, 0, 168),
+//   //  new TrackPointPiece("", 500, 500, 180, 0, 22.5, 438)
+// ]
+
+const trackPieces = tracks.map((track) => {
+  switch(track.type){
+    case "straight": return new TrackStraightPiece(track.code, track.x, track.y, track.rotation, track.length!)
+    case "curve": return new TrackCurvedPiece(track.code, track.x, track.y, track.rotation, track.startAngle!, track.endAngle!, track.radius!)
+    case "lhpoint": return new LeftHandedTrackPointPiece(track.code, track.x, track.y, track.rotation, track.length!)
+    case "rhpoint": return new RightHandedTrackPointPiece(track.code, track.x, track.y, track.rotation, track.length!)
+  }
+}).filter(t => t!==undefined) 
 
 function App() {
   return (
-    <ModlerProvider initialTracks={trackPieces}>  
-     <ModelRailwayToolbar/>
+    <ModlerProvider initialTracks={trackPieces}>
+      <ModelRailwayToolbar />
     </ModlerProvider>
   )
 }

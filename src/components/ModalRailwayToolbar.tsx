@@ -2,24 +2,27 @@ import { useState, useRef } from 'react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { TooltipProvider } from "@/components/ui/tooltip"
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Undo2, Redo2, ShoppingCart, ZoomIn, ZoomOut, Save, FileInput, Ruler, Eraser, RotateCcw, PaintBucket, Camera, RailSymbol, Trash2, LucideTrainTrack, LayoutDashboard } from 'lucide-react'
-import { TrackPieceBase } from '@/lib/Track'
+import { ShoppingCart, ZoomIn, ZoomOut, Save, FileInput, Ruler, Eraser, RotateCcw, PaintBucket, Camera, RailSymbol, LucideTrainTrack, LayoutDashboard, Settings, RotateCw, Move3D, Move } from 'lucide-react'
 import { useModlerContext } from '@/context/ModlerContext'
-import Grid from './Grid'
 import { CreateTrackPiece, HornbyTrackPack } from '@/lib/trackPacks/hornby'
+import { Canvas } from './BaseGrid'
+import { themes } from '@/lib/Themes'
+import { TrackPieceBase } from '@/lib/Track'
 
 
 export function ModelRailwayToolbar() {
     const [layoutName, setLayoutName] = useState("My Railway Layout")
-    const { state, undo, redo, deleteTrack, setScale } = useModlerContext();
+    const { setTool, setRotation, setScale } = useModlerContext();
     const canvasRef = useRef<HTMLCanvasElement>(null);
+
+    const [themeIndex, setThemeIndex] = useState(0);
 
     const takeScreenshot = () => {
         const canvas = canvasRef.current;
@@ -36,103 +39,44 @@ export function ModelRailwayToolbar() {
         <TooltipProvider>
             <div className="flex flex-col h-screen bg-background">
                 <nav className="bg-card text-card-foreground p-2 shadow-lg">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2">
-                            <div className=" flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+                    <div className="flex flex-col gap-3  md:flex-row items-center justify-between">
+                        <div className="flex w-full items-center space-x-2">
+                            <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
                                 <RailSymbol className="size-8 p-1" />
                             </div>
-                            <div className="grid flex-1 text-left text-lg leading-tight">
-                                <span className="truncate font-semibold">
-                                    Track Planner
-                                </span>
-                            </div>
-
                             <Input
                                 value={layoutName}
                                 onChange={(e) => setLayoutName(e.target.value)}
-                                className="font-semibold text-lg w-96"
+                                className="font-semibold text-lg w-full"
                             />
-
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button variant="outline" size="icon" onClick={undo} >
-                                        <Undo2 className="h-4 w-4" />
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>Undo</TooltipContent>
-                            </Tooltip>
-
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button variant="outline" size="icon" onClick={redo} >
-                                        <Redo2 className="h-4 w-4" />
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>Redo</TooltipContent>
-                            </Tooltip>
-
-                            {state.selectedPiece &&
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <Button variant="outline" size="icon" onClick={deleteTrack} >
-                                            <Trash2 className="h-4 w-4" />
-                                        </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>Delete Track</TooltipContent>
-                                </Tooltip>
-                            }
                         </div>
 
-                        <div className="flex items-center space-x-2">
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button variant="outline" size="icon" onClick={() => setScale(state.scale + 0.1)}>
-                                        <ZoomIn className="h-4 w-4" />
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>Zoom In</TooltipContent>
-                            </Tooltip>
 
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button variant="outline" size="icon" onClick={() => setScale(state.scale - 0.1)}>
-                                        <ZoomOut className="h-4 w-4" />
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>Zoom Out</TooltipContent>
-                            </Tooltip>
-
+                        <div className="flex items-center space-x-2 w-full justify-evenly md:justify-end">
                             <AddTrackButton />
-
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                    <Button variant="outline"><Ruler /> Tools</Button>
+                                    <Button variant="outline"><Ruler /></Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent>
-                                    <DropdownMenuItem disabled>
+                                    <DropdownMenuItem onClick={() => { setTool(null) }}>
+                                        <Move className="h-4 w-4 mr-2" />
+                                        Move
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => { setTool('MEASURE') }}>
                                         <Ruler className="h-4 w-4 mr-2" />
                                         Measure
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem disabled>
+                                    <DropdownMenuItem onClick={() => { setTool('ERASER') }}>
                                         <Eraser className="h-4 w-4 mr-2" />
                                         Erase
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem disabled>
-                                        <RotateCcw className="h-4 w-4 mr-2" />
-                                        Rotate
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem disabled>
-                                        <PaintBucket className="h-4 w-4 mr-2" />
-                                        Paint
                                     </DropdownMenuItem>
                                 </DropdownMenuContent>
                             </DropdownMenu>
 
-
-
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                    <Button variant="outline"><LayoutDashboard /> Layout</Button>
+                                    <Button variant="outline"><LayoutDashboard className='h-8 w-8' /> </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent>
                                     <DropdownMenuItem disabled>
@@ -150,14 +94,28 @@ export function ModelRailwayToolbar() {
                                 </DropdownMenuContent>
                             </DropdownMenu>
                             <ShoppingListSheet />
+                            <ThemeSelector setThemeIndex={setThemeIndex} />
 
                         </div>
                     </div>
                 </nav>
-                <div className="flex-grow p-4">
-                    {/* Main content area */}
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg h-full flex items-center justify-center text-muted-foreground">
-                        <Grid canvasRef={canvasRef} />
+                <div className="flex flex-grow p-4 w-full">
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg w-full h-full flex items-center justify-center text-muted-foreground">
+                        <div className="absolute top-36 md:top-24 right-8 space-x-2">
+                            <Button size="icon" className="rounded-full" title="Zoom In" onClick={() => setScale(0.1)}>
+                                <ZoomIn />
+                            </Button>
+                            <Button size="icon" className="rounded-full" title="Zoom Out" onClick={() => setScale(-0.1)}>
+                                <ZoomOut className="h-8 w-8" />
+                            </Button>
+                            <Button size="icon" className="rounded-full" title="Rotate Canvas Clockwise" onClick={() => setRotation(Math.PI / 12)}>
+                                <RotateCw className="h-8 w-8" />
+                            </Button>
+                            <Button size="icon" className="rounded-full" title="Rotate Canvas Counterclockwise" onClick={() => setRotation(-Math.PI / 12)}>
+                                <RotateCcw className="h-8 w-8" />
+                            </Button>
+                        </div>
+                        <Canvas theme={themes[themeIndex]} canvasRef={canvasRef} />
                     </div>
                 </div>
             </div>
@@ -172,7 +130,7 @@ const AddTrackButton = () => {
 
     return <DropdownMenu>
         <DropdownMenuTrigger asChild>
-            <Button variant="outline"><LucideTrainTrack /> Add Track</Button>
+            <Button variant="outline"><LucideTrainTrack /> </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent>
             {HornbyTrackPack.map((track) =>
@@ -189,7 +147,7 @@ const AddTrackButton = () => {
 const ShoppingListSheet = () => {
     const { state } = useModlerContext();
 
-    const trackSummary = state.tracks.reduce((acc: { [key: string]: number }, track: TrackPieceBase) => {
+     const trackSummary = state.tracks.reduce((acc: { [key: string]: number }, track: TrackPieceBase) => {
         acc[track.code] = (acc[track.code] || 0) + 1;
         return acc;
     }, {});
@@ -220,11 +178,10 @@ const ShoppingListSheet = () => {
     return <Sheet>
         <SheetTrigger asChild>
             <Button variant="outline">
-                <ShoppingCart className="h-4 w-4 mr-2" />
-                Shopping List
+                <ShoppingCart className="h-4 w-4" />
             </Button>
         </SheetTrigger>
-        <SheetContent>
+        <SheetContent className='w-full md:w-[400px]'>
             <SheetHeader>
                 <SheetTitle>Shopping List</SheetTitle>
             </SheetHeader>
@@ -251,7 +208,23 @@ const ShoppingListSheet = () => {
             <Button onClick={exportToCSV} className='w-full'><Save /> Export as CSV</Button>
         </SheetContent>
     </Sheet>
+}
 
+type ThemeSelectorProps = {
+    setThemeIndex: (themeIndex: number) => void
+}
 
-
+const ThemeSelector = ({ setThemeIndex }: ThemeSelectorProps) => {
+    return <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+            <Button variant="outline"><Settings /> </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+            {themes.map((theme, index) =>
+                <DropdownMenuItem key={index} className='flex items-center' onClick={() => setThemeIndex(index)}>
+                    {theme.name}
+                </DropdownMenuItem>
+            )}
+        </DropdownMenuContent>
+    </DropdownMenu>
 }

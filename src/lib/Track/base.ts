@@ -3,7 +3,7 @@ export const tieWidth = 15; // Width of track /2
 export const tieHeight = 2;
 export const tieSpacing = 6.25;
 export const tieThikness = 3;
-export const gridSize = 67;
+export const gridSize = 5;
 
 export abstract class TrackPieceBase {
     x: number;
