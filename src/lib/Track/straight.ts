@@ -1,4 +1,4 @@
-import { Arc, railWidth, tieSpacing, tieThikness, tieWidth, ToRadians, TrackPieceBase } from "./base";
+import {  railWidth, tieSpacing, tieThikness, tieWidth, ToRadians, TrackPieceBase } from "./base";
 
 export class TrackStraightPiece extends TrackPieceBase {
     length: number;

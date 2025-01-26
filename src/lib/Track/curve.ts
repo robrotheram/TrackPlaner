@@ -15,7 +15,6 @@ export class TrackCurvedPiece extends TrackPieceBase {
     }
 
     draw(ctx: CanvasRenderingContext2D, isSelected?: boolean) {
-        this.setupContext(ctx);
         const { origin, startAngle, endAngle } = this.getArc(0, 0);
 
         ctx.save();
@@ -57,18 +56,26 @@ export class TrackCurvedPiece extends TrackPieceBase {
         const dx = x - origin.x;
         const dy = y - origin.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
-
-        if (distance < this.radius - tolerance || distance > this.radius + tolerance) {
+    
+        // Check if point is within the tolerance band of the arc radius
+        if (Math.abs(distance - this.radius) > tolerance) {
             return false;
         }
-
-        let angle = Math.atan2(dy, dx) - ToRadians(this.rotation);
-        const normalizeAngle = (a: number) => (a < 0 ? a + 2 * Math.PI : a);
+    
+        // Rotate the point to align with the arc's rotation
+        const rotatedDx = dx * Math.cos(-ToRadians(this.rotation)) - dy * Math.sin(-ToRadians(this.rotation));
+        const rotatedDy = dx * Math.sin(-ToRadians(this.rotation)) + dy * Math.cos(-ToRadians(this.rotation));
+    
+        // Calculate the angle of the rotated point
+        let angle = Math.atan2(rotatedDy, rotatedDx);
+        
+        // Normalize angles to 0-2π range
+        const normalizeAngle = (a: number) => (a < 0 ? a + 2 * Math.PI : a) % (2 * Math.PI);
+        
         const normalizedStart = normalizeAngle(ToRadians(this.startAngle));
         const normalizedEnd = normalizeAngle(ToRadians(this.endAngle));
         angle = normalizeAngle(angle);
-
-        if (normalizedStart < normalizedEnd) {
+        if (normalizedStart <= normalizedEnd) {
             return angle >= normalizedStart && angle <= normalizedEnd;
         } else {
             return angle >= normalizedStart || angle <= normalizedEnd;

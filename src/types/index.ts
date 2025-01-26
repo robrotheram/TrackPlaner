@@ -1,6 +1,6 @@
 import { TrackPieceBase } from "@/lib/Track";
 
-export type Tool = "MEASURE" | "ERASER" | null
+export type Tool = "MEASURE" | "ERASER" | "MOVE" | "ROTATE" | "PANNING"
 
 export interface CanvasState {
     scale: number;
@@ -13,7 +13,7 @@ export interface CanvasState {
 
     lastX: number;
     lastY: number;
-    tool?: Tool
+    tool: Tool
 
     pinchDistance: number;
     pinchAngle: number;
@@ -27,10 +27,8 @@ export interface Theme {
     background: string;
     gridColor: string;
     gridOpacity: number;
-    extras?: {
-        texture?: boolean;
-        glow?: boolean;
-        dots?: boolean;
-        stars?: boolean;
-    };
+    icon:{
+        color: string
+        fill: string
+    }
 }

@@ -158,7 +158,7 @@ export abstract class TrackPointPiece extends TrackCurvedPiece {
         return { cos: Math.cos(rad), sin: Math.sin(rad) };
     }
 
-    markers(ctx: CanvasRenderingContext2D, center: Point, start: Point, end: Point, origin:Point) {
+    markers(ctx: CanvasRenderingContext2D, center: Point, start: Point, end: Point, _:Point) {
         this.drawMarker(ctx, center, 'blue');
         this.drawMarker(ctx, start, 'red');
         this.drawMarker(ctx, end, 'purple');

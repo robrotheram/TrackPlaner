@@ -32,14 +32,9 @@ export abstract class TrackPieceBase {
     }
 
     setRotation(rotation: number) {
-        this.rotation = ((rotation % 360) + 360) % 360;
-    }
-
-    protected setupContext(ctx: CanvasRenderingContext2D) {
-        
-
-
-
+        rotation +=this.rotation
+        this.rotation = rotation >= 0 ? rotation % 360 : (rotation % 360 + 360) % 360;
+        console.log(this.rotation)
     }
 }
 

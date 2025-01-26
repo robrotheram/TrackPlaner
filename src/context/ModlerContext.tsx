@@ -1,7 +1,7 @@
 import { TrackPieceBase } from '@/lib/Track';
 import { Point } from '@/lib/Track/base';
 import { CanvasState, Tool } from '@/types';
-import React, { createContext, useContext, useReducer, ReactNode, useEffect, useState } from 'react';
+import React, { createContext, useContext, ReactNode, useEffect, useState } from 'react';
 
 
 
@@ -17,6 +17,7 @@ const initialState: CanvasState = {
     lastY: 0,
     pinchDistance: 0,
     pinchAngle: 0,
+    tool: 'PANNING',
     tracks: [],
 }
 
@@ -72,7 +73,8 @@ export const ModlerProvider = ({ children, initialTracks = [] }: { children: Rea
     const addTrack = (track: TrackPieceBase) => {
         setState(prev => ({
             ...prev,
-            tracks:[...prev.tracks, track]
+            tracks:[...prev.tracks, track],
+            tool: "MOVE"
         }));
     }
 
@@ -81,7 +83,7 @@ export const ModlerProvider = ({ children, initialTracks = [] }: { children: Rea
         if (event.key === 'Escape') {
             setState(prev => ({
                 ...prev,
-                tool:null,
+                tool:'MOVE',
                 isDragging: false,
                 isPanning: false,
                 isToolActive: false,
@@ -91,7 +93,7 @@ export const ModlerProvider = ({ children, initialTracks = [] }: { children: Rea
         if (event.key === 'e') {
             setState(prev => ({
                 ...prev,
-                tool: "ERASER"
+                tool: "MOVE"
             }));
         }
         if (event.key === 'm') {

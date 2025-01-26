@@ -9,7 +9,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { ShoppingCart, ZoomIn, ZoomOut, Save, FileInput, Ruler, Eraser, RotateCcw, PaintBucket, Camera, RailSymbol, LucideTrainTrack, LayoutDashboard, Settings, RotateCw, Move3D, Move } from 'lucide-react'
+import { ShoppingCart, ZoomOut, Save, FileInput, Ruler, Eraser, RotateCcw, Camera, RailSymbol, LucideTrainTrack, LayoutDashboard, Settings, RotateCw, Move, MousePointerClick, DraftingCompass, ZoomInIcon } from 'lucide-react'
 import { useModlerContext } from '@/context/ModlerContext'
 import { CreateTrackPiece, HornbyTrackPack } from '@/lib/trackPacks/hornby'
 import { Canvas } from './BaseGrid'
@@ -56,12 +56,22 @@ export function ModelRailwayToolbar() {
                             <AddTrackButton />
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                    <Button variant="outline"><Ruler /></Button>
+                                    <Button variant="outline"><DraftingCompass /><span className='hidden sm:block'>Tools</span></Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent>
-                                    <DropdownMenuItem onClick={() => { setTool(null) }}>
+                                
+                                <DropdownMenuItem onClick={() => { setTool("MOVE") }}>
+                                    <MousePointerClick className="h-4 w-4 mr-2" />
+                                        Edit
+                                    </DropdownMenuItem>
+                                    
+                                    <DropdownMenuItem onClick={() => { setTool("ROTATE") }}>
+                                        <RotateCw className="h-4 w-4 mr-2" />
+                                        Rotate Piece
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => { setTool("PANNING") }}>
                                         <Move className="h-4 w-4 mr-2" />
-                                        Move
+                                        Pan Canvas
                                     </DropdownMenuItem>
                                     <DropdownMenuItem onClick={() => { setTool('MEASURE') }}>
                                         <Ruler className="h-4 w-4 mr-2" />
@@ -76,7 +86,7 @@ export function ModelRailwayToolbar() {
 
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                    <Button variant="outline"><LayoutDashboard className='h-8 w-8' /> </Button>
+                                    <Button variant="outline"><LayoutDashboard className='h-8 w-8' /><span className='hidden sm:block'>Layout</span> </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent>
                                     <DropdownMenuItem disabled>
@@ -103,16 +113,16 @@ export function ModelRailwayToolbar() {
                     <div className="border-2 border-dashed border-gray-300 rounded-lg w-full h-full flex items-center justify-center text-muted-foreground">
                         <div className="absolute top-36 md:top-24 right-8 space-x-2">
                             <Button size="icon" className="rounded-full" title="Zoom In" onClick={() => setScale(0.1)}>
-                                <ZoomIn />
+                                <ZoomInIcon />
                             </Button>
                             <Button size="icon" className="rounded-full" title="Zoom Out" onClick={() => setScale(-0.1)}>
-                                <ZoomOut className="h-8 w-8" />
+                                <ZoomOut/>
                             </Button>
                             <Button size="icon" className="rounded-full" title="Rotate Canvas Clockwise" onClick={() => setRotation(Math.PI / 12)}>
-                                <RotateCw className="h-8 w-8" />
+                                <RotateCw/>
                             </Button>
                             <Button size="icon" className="rounded-full" title="Rotate Canvas Counterclockwise" onClick={() => setRotation(-Math.PI / 12)}>
-                                <RotateCcw className="h-8 w-8" />
+                                <RotateCcw/>
                             </Button>
                         </div>
                         <Canvas theme={themes[themeIndex]} canvasRef={canvasRef} />
@@ -130,7 +140,7 @@ const AddTrackButton = () => {
 
     return <DropdownMenu>
         <DropdownMenuTrigger asChild>
-            <Button variant="outline"><LucideTrainTrack /> </Button>
+            <Button variant="outline"><LucideTrainTrack /> <span className='hidden sm:block'>Add Track</span></Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent>
             {HornbyTrackPack.map((track) =>
@@ -178,12 +188,12 @@ const ShoppingListSheet = () => {
     return <Sheet>
         <SheetTrigger asChild>
             <Button variant="outline">
-                <ShoppingCart className="h-4 w-4" />
+                <ShoppingCart className="h-4 w-4" /><span className='hidden sm:block'>Bill of Materials</span>
             </Button>
         </SheetTrigger>
         <SheetContent className='w-full md:w-[400px]'>
             <SheetHeader>
-                <SheetTitle>Shopping List</SheetTitle>
+                <SheetTitle>Bill of Materials</SheetTitle>
             </SheetHeader>
             <div className="py-4">
                 <table className="min-w-full bg-white">

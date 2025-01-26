@@ -8,7 +8,6 @@ html, body, #root {
     padding: 0;
 }
 
-html,body{overscroll-behavior:none;}
 
 @layer base {
   :root {
