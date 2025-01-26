@@ -69,6 +69,23 @@ export abstract class TrackPointPiece extends TrackCurvedPiece {
         ctx.save();
         this.markers(ctx, center, start, end, arcOrigin);
 
+        // Draw ties
+        ctx.save();
+        ctx.translate(this.x + this.length / 2, this.y);
+        ctx.rotate(ToRadians(this.rotation));
+        const halfLength = this.length / 2;
+        for (let i = -halfLength + tieThikness * 2; i < halfLength - tieThikness / 2; i += tieSpacing) {
+            const d = distanceToArc(arcOrigin, start.x, start.y, i + halfLength);
+            ctx.beginPath();
+            ctx.moveTo(i, -tieWidth*directionMultiplier);
+            ctx.lineTo(i, (tieWidth + d)*directionMultiplier);
+            ctx.strokeStyle = isSelected ? 'red' : '#000';
+            ctx.lineWidth = tieThikness;
+            ctx.lineCap = "butt";
+            ctx.stroke();
+        }
+        ctx.restore();
+
         // Draw rails with the corrected start and end angles
         ctx.strokeStyle = isSelected ? 'red' : '#9B9B97';
         ctx.lineWidth = 2;
@@ -97,6 +114,8 @@ export abstract class TrackPointPiece extends TrackCurvedPiece {
         ctx.translate(this.x + this.length / 2, this.y);
         ctx.rotate(ToRadians(this.rotation));
 
+         
+
         // Draw straight track section
         ctx.strokeStyle = isSelected ? 'red' : '#9B9B97';
         ctx.lineWidth = 2;
@@ -108,18 +127,7 @@ export abstract class TrackPointPiece extends TrackCurvedPiece {
         ctx.lineTo(this.length / 2, railWidth);
         ctx.stroke();
 
-        // Draw ties
-        const halfLength = this.length / 2;
-        for (let i = -halfLength + tieThikness * 2; i < halfLength - tieThikness / 2; i += tieSpacing) {
-            const d = distanceToArc(arcOrigin, start.x, start.y, i + halfLength);
-            ctx.beginPath();
-            ctx.moveTo(i, -tieWidth*directionMultiplier);
-            ctx.lineTo(i, (tieWidth + d)*directionMultiplier);
-            ctx.strokeStyle = isSelected ? 'red' : '#000';
-            ctx.lineWidth = tieThikness;
-            ctx.lineCap = "butt";
-            ctx.stroke();
-        }
+       
         ctx.restore();
     }
 

@@ -6,6 +6,7 @@ import { Theme } from '@/types';
 import { stat } from 'fs';
 import { Eraser, Ruler } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
+import { json } from 'stream/consumers';
 
 
 
@@ -46,19 +47,19 @@ export const Canvas: React.FC<CanvasProps> = ({ theme, canvasRef }) => {
 
             // Save context state
             ctx.save();
-
             // Apply transformations
             ctx.translate(canvas.width / 2, canvas.height / 2);
             ctx.rotate(state.rotation);
             ctx.scale(state.scale, state.scale);
             ctx.translate(-canvas.width / 2 + state.offsetX, -canvas.height / 2 + state.offsetY);
 
+
             DrawGrid(canvas, ctx, theme, state)
             drawMeasurements(ctx, measurements)
             state.tracks.forEach((piece, index) => piece.draw(ctx, index === state.selectedPiece));
-            
-
             ctx.restore();
+
+
         };
         draw()
     }, [theme, state, measurements]);
@@ -79,29 +80,48 @@ export const Canvas: React.FC<CanvasProps> = ({ theme, canvasRef }) => {
 
     const getRealCoordinates = (x: number, y: number) => {
         const rect = canvasRef.current?.getBoundingClientRect();
-        const realX = (x - rect!.x - state.offsetX) / state.scale;
-        const realY = (y - rect!.y - state.offsetY) / state.scale;
+        const canvas = canvasRef.current;
+        if (!rect || !canvas) {
+            throw new Error("Canvas element is not available");
+        }
+    
+        // Map the mouse coordinates to canvas coordinates
+        const canvasX = x - rect.x;
+        const canvasY = y - rect.y;
+    
+        // Step 1: Adjust for rotation
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+    
+        const sin = Math.sin(state.rotation); // Reverse the rotation
+        const cos = Math.cos(state.rotation);
+    
+        const rotatedX = cos * (canvasX - centerX) + sin * (canvasY - centerY) + centerX;
+        const rotatedY = -sin * (canvasX - centerX) + cos * (canvasY - centerY) + centerY;
+    
+        // Step 2: Adjust for scaling
+        const scaledX = (rotatedX - centerX) / state.scale + centerX;
+        const scaledY = (rotatedY - centerY) / state.scale + centerY;
+    
+        // Step 3: Adjust for translation
+        const realX = scaledX - state.offsetX;
+        const realY = scaledY - state.offsetY;
+    
         return { x: realX, y: realY };
     };
+    
 
     const selectTrackPiece = (x: number, y: number) => {
-        setState(prev => ({
-            ...prev,
-            selectedPiece: undefined
-        }));
         const { x: transformedX, y: transformedY } = getRealCoordinates(x, y);
         for (let i = 0; i < state.tracks.length; i++) {
             if (state.tracks[i].isSelectable(transformedX, transformedY, 20 / state.scale)) {
-                setState(prev => ({
-                    ...prev,
-                    selectedPiece: i
-                }));
-                return;
+                return i;
             }
         }
     };
+
     const handleWheel = (e: React.WheelEvent) => {
-        e.preventDefault();
+        // e.preventDefault();
         if (e.ctrlKey || e.metaKey) {
             // Zoom
             const delta = -e.deltaY * 0.001;
@@ -124,30 +144,47 @@ export const Canvas: React.FC<CanvasProps> = ({ theme, canvasRef }) => {
         if (e.button === 0) {
             const canvas = canvasRef.current;
             if (!canvas) return;
-            const rect = canvas.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-
-            setState(prev => ({
-                ...prev,
-                isDragging: true,
-                lastX: x,
-                lastY: y
-            }))
+            // const rect = canvas.getBoundingClientRect();
+            // const x = e.clientX - rect.left;
+            // const y = e.clientY - rect.top;
+            const coords = getRealCoordinates(e.clientX, e.clientY)
 
             if (state.tool === 'MEASURE') {
-                setMeasurements((prev) => [
+                if (!state.isToolActive) {
+                    setMeasurements((prev) => [
+                        ...prev,
+                        { start: coords, end: coords, distance: "0" },
+                    ]);
+                }
+                setState(prev => ({
                     ...prev,
-                    { start: { x, y }, end: { x, y }, distance: "0" },
-                ]);
+                    isToolActive: !state.isToolActive,
+                    lastX: coords.x,
+                    lastY: coords.y
+                }))
+
             } else if (state.tool === "ERASER") {
-                const clickedPoint = { x, y };
+                const clickedPoint = coords;
                 const updatedMeasurements = measurements.filter(
-                    (line) => !isPointNearLine(clickedPoint, line)
+                    (line) => !isPointNearLine(clickedPoint, line, 20 / state.scale)
                 );
                 setMeasurements(updatedMeasurements);
-            }else{
-                selectTrackPiece(e.clientX, e.clientY);
+
+                const selectTrack = selectTrackPiece(e.clientX, e.clientY)
+                if (selectTrack !== undefined){
+                    setState(prev => ({
+                        ...prev,
+                        tracks:prev.tracks.filter((_, index) => selectTrack !== index)
+                    }))
+                }
+            } else {
+                setState(prev => ({
+                    ...prev,
+                    isDragging: true,
+                    selectedPiece: selectTrackPiece(e.clientX, e.clientY),
+                    lastX: coords.x,
+                    lastY: coords.y
+                }))
             }
         }
 
@@ -159,6 +196,18 @@ export const Canvas: React.FC<CanvasProps> = ({ theme, canvasRef }) => {
                 lastY: e.clientY
             }));
         }
+
+        if (e.button === 2 && state.selectedPiece !== null) {
+            const updatedPieces = [...state.tracks];
+            const rotationAmount = e.shiftKey ? -22.5 : 22.5;
+            updatedPieces[state.selectedPiece!].setRotation(updatedPieces[state.selectedPiece!].rotation + rotationAmount);
+            setState(prev => ({
+                ...prev,
+                tracks: updatedPieces,
+                isDragging: true
+            }));
+            return;
+        }
     };
 
     const handleMouseMove = (e: React.MouseEvent) => {
@@ -167,12 +216,19 @@ export const Canvas: React.FC<CanvasProps> = ({ theme, canvasRef }) => {
             y: e.clientY
         });
 
-        if (state.isDragging) {
-            const canvas = canvasRef.current;
-            if (!canvas) return;
-            const rect = canvas.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
+        if (state.isDragging && state.selectedPiece !== undefined) {
+            const { x, y } = getRealCoordinates(e.clientX, e.clientY);
+            const updatedPieces = [...state.tracks];
+            updatedPieces[state.selectedPiece!].setLocation(x, y);
+            setState(prev => ({
+                ...prev,
+                tracks: updatedPieces,
+            }));
+            return
+        }
+
+        if (state.tool === "MEASURE" && state.isToolActive) {
+            const { x, y } = getRealCoordinates(e.clientX, e.clientY);
             const dx = x - state.lastX;
             const dy = y - state.lastY;
             const distance = Math.sqrt(dx * dx + dy * dy).toFixed(2);
@@ -189,35 +245,40 @@ export const Canvas: React.FC<CanvasProps> = ({ theme, canvasRef }) => {
             return
         }
 
-
-
-
         if (!state.isPanning) return;
-        // Calculate the change in position
+
+
         const dx = e.clientX - state.lastX;
         const dy = e.clientY - state.lastY;
 
         // Apply rotation transformation to the delta
-        const cos = Math.cos(-state.rotation);
-        const sin = Math.sin(-state.rotation);
-        const rotatedDx = dx * cos - dy * sin;
-        const rotatedDy = dx * sin + dy * cos;
+        const rotation = state.rotation; // Rotation in radians
+        const cos = Math.cos(rotation);
+        const sin = Math.sin(rotation);
 
-        setState(prev => ({
+        // // Transform the deltas into the rotated coordinate space
+        const rotatedDx = dx * cos + dy * sin;
+        const rotatedDy = -dx * sin + dy * cos;
+
+        // Update the state with the rotated deltas
+        setState((prev) => ({
             ...prev,
             offsetX: prev.offsetX + rotatedDx,
             offsetY: prev.offsetY + rotatedDy,
             lastX: e.clientX,
-            lastY: e.clientY
+            lastY: e.clientY,
         }));
     };
 
     const handleMouseUp = () => {
-        setState(prev => ({
-            ...prev,
-            isPanning: false,
-            isDragging: false
-        }));
+        if (!state.isToolActive) {
+            setState(prev => ({
+                ...prev,
+                isPanning: false,
+                isDragging: false,
+                // isToolActive: false,
+            }));
+        }
         setCursorPosition(null);
     };
 
@@ -316,6 +377,11 @@ export const Canvas: React.FC<CanvasProps> = ({ theme, canvasRef }) => {
         >
 
         </canvas>
+        <div className='absolute right-10 text-white'>
+            <pre>
+                {JSON.stringify({...state,tracks:[]}, null, 2)}
+            </pre>
+        </div>
         {cursorPosition && state.tool && (
             <div
                 style={{

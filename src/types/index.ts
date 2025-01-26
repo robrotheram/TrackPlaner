@@ -9,6 +9,8 @@ export interface CanvasState {
     offsetY: number;
     isDragging: boolean;
     isPanning: boolean;
+    isToolActive: boolean;
+
     lastX: number;
     lastY: number;
     tool?: Tool

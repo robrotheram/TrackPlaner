@@ -12,6 +12,7 @@ const initialState: CanvasState = {
     offsetY: 0,
     isDragging: false,
     isPanning: false,
+    isToolActive: false,
     lastX: 0,
     lastY: 0,
     pinchDistance: 0,
@@ -64,7 +65,7 @@ export const ModlerProvider = ({ children, initialTracks = [] }: { children: Rea
     const setTool = (tool:Tool) => {
         setState(prev => ({
             ...prev,
-            tool
+            tool,
         }));
     }
 
@@ -78,7 +79,26 @@ export const ModlerProvider = ({ children, initialTracks = [] }: { children: Rea
 
     const handleKeyDown = (event: KeyboardEvent) => {
         if (event.key === 'Escape') {
-            setTool(null)
+            setState(prev => ({
+                ...prev,
+                tool:null,
+                isDragging: false,
+                isPanning: false,
+                isToolActive: false,
+                selectedPiece: -1,
+            }));
+        }
+        if (event.key === 'e') {
+            setState(prev => ({
+                ...prev,
+                tool: "ERASER"
+            }));
+        }
+        if (event.key === 'm') {
+            setState(prev => ({
+                ...prev,
+                tool: "MEASURE"
+            }));
         }
     };
 
