@@ -1,4 +1,4 @@
-import {  railWidth, tieSpacing, tieThikness, tieWidth, ToRadians, TrackPieceBase } from "./base";
+import { Point, railWidth, tieSpacing, tieThikness, tieWidth, ToRadians, TrackPieceBase } from "./base";
 
 export class TrackStraightPiece extends TrackPieceBase {
     length: number;
@@ -9,31 +9,28 @@ export class TrackStraightPiece extends TrackPieceBase {
         this.code = code;
     }
 
-    markers(ctx:CanvasRenderingContext2D) {
+    getMarkerPoints() {
         const center = this.getCenter();
-        ctx.beginPath();
-        ctx.arc(center.x, center.y, 5, 0, 2 * Math.PI);
-        ctx.fillStyle = 'blue';
-        ctx.fill();
+        const { cos, sin } = this.calculateRotationCosSin(this.rotation);
 
-        const startX = center.x - this.length / 2 * Math.cos(ToRadians(this.rotation));
-        const startY = center.y - this.length / 2 * Math.sin(ToRadians(this.rotation));
+        const halfLength = this.length / 2;
+        const start: Point = {
+            x: center.x - halfLength * cos,
+            y: center.y - halfLength * sin,
+        };
+        const end: Point = {
+            x: center.x + halfLength * cos,
+            y: center.y + halfLength * sin,
+        };
+       
 
-        ctx.beginPath();
-        ctx.arc(startX, startY, 5, 0, Math.PI * 2);
-        ctx.fillStyle = 'red';
-        ctx.fill();
-
-        const endX = center.x + this.length / 2 * Math.cos(ToRadians(this.rotation));
-        const endY = center.y + this.length / 2 * Math.sin(ToRadians(this.rotation));
-
-        ctx.beginPath();
-        ctx.arc(endX, endY, 5, 0, Math.PI * 2);
-        ctx.fillStyle = 'purple';
-        ctx.fill();
+        return { center, start, end };
     }
+
+  
     draw(ctx: CanvasRenderingContext2D, isSelected?: boolean) {
-        this.markers(ctx);
+        const {center, start, end} = this.getMarkerPoints()
+        this.markers(ctx, center, start, end);
         ctx.save();
         ctx.translate(this.x + this.length / 2, this.y);
         ctx.rotate(ToRadians(this.rotation));

@@ -67,7 +67,7 @@ export abstract class TrackPointPiece extends TrackCurvedPiece {
         }
 
         ctx.save();
-        this.markers(ctx, center, start, end, arcOrigin);
+        this.markers(ctx, center, start, end);
 
         // Draw ties
         ctx.save();
@@ -153,24 +153,6 @@ export abstract class TrackPointPiece extends TrackCurvedPiece {
             : new LeftHandedTrackPointPiece(this.code, this.x, this.y, this.rotation, this.length);
     }
 
-    private calculateRotationCosSin(rotation: number) {
-        const rad = ToRadians(rotation);
-        return { cos: Math.cos(rad), sin: Math.sin(rad) };
-    }
-
-    markers(ctx: CanvasRenderingContext2D, center: Point, start: Point, end: Point, _:Point) {
-        this.drawMarker(ctx, center, 'blue');
-        this.drawMarker(ctx, start, 'red');
-        this.drawMarker(ctx, end, 'purple');
-        // this.drawMarker(ctx, origin, 'green');
-    }
-
-    private drawMarker(ctx: CanvasRenderingContext2D, point: Point, color: string) {
-        ctx.beginPath();
-        ctx.arc(point.x, point.y, 5, 0, 2 * Math.PI);
-        ctx.fillStyle = color;
-        ctx.fill();
-    }
 }
 
 // Utility function for distance calculation

@@ -14,8 +14,24 @@ export class TrackCurvedPiece extends TrackPieceBase {
         this.code = code;
     }
 
+    getMarkerPoints() {
+        const { origin, startAngle, endAngle } = this.getArc(this.x, this.y);
+        const start = {
+          x: origin.x + Math.cos(startAngle) * this.radius,
+          y: origin.y + Math.sin(startAngle) * this.radius,
+        };
+        const end = {
+          x: origin.x + Math.cos(endAngle) * this.radius,
+          y: origin.y + Math.sin(endAngle) * this.radius,
+        };
+        return { center:this.getCenter(), start, end };
+    }
+    
     draw(ctx: CanvasRenderingContext2D, isSelected?: boolean) {
-        const { origin, startAngle, endAngle } = this.getArc(0, 0);
+        const {center, start, end} = this.getMarkerPoints()
+        this.markers(ctx, center, start, end);
+
+        const { origin, startAngle, endAngle, } = this.getArc(0, 0);
 
         ctx.save();
         ctx.translate(this.x + origin.x, this.y + origin.y);
