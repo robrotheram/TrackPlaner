@@ -1,3 +1,6 @@
+import { TrackPack } from ".";
+import { ToRadians } from "./utils";
+
 export const railWidth = 8; // Railwidth /2
 export const tieWidth = 15; // Width of track /2
 export const tieHeight = 2;
@@ -22,13 +25,12 @@ export abstract class TrackPieceBase {
     abstract isSelectable(x: number, y: number, tolerance: number): boolean;
     abstract getCenter(): { x: number, y: number };
     abstract clone(): TrackPieceBase;
+    abstract getMarkerPoints():{center:Point, start:Point, end:Point}
+    abstract serialise():TrackPack
 
     setLocation(x: number, y: number) {
-        const center = this.getCenter();
-        const dx = center.x - this.x;
-        const dy = center.y - this.y;
-        this.x = Math.round((x - dx) / gridSize) * gridSize;
-        this.y = Math.round((y - dy) / 1) * 1;
+        this.x = x;
+        this.y = y;
     }
 
     setRotation(rotation: number) {
@@ -36,15 +38,28 @@ export abstract class TrackPieceBase {
         this.rotation = rotation >= 0 ? rotation % 360 : (rotation % 360 + 360) % 360;
         console.log(this.rotation)
     }
-}
 
-export function ToRadians(degrees: number): number {
-    return degrees * (Math.PI / 180);
-}
+    private drawMarker(ctx: CanvasRenderingContext2D, point: Point, color: string) {
+        ctx.beginPath();
+        ctx.arc(point.x, point.y, 5, 0, 2 * Math.PI);
+        ctx.fillStyle = color;
+        ctx.fill();
+    }
 
-export function radiansToDegrees(radians: number): number {
-    return radians * (180 /  Math.PI);
+    markers(ctx: CanvasRenderingContext2D, ...points:Point[]) {
+        const colors = ["red", "blue", "green", "yellow", "purple"];
+        points.forEach((p,index) => {
+            this.drawMarker(ctx, p,  colors[index % colors.length]);
+        })
+    }
+
+    calculateRotationCosSin(rotation: number) {
+        const rad = ToRadians(rotation);
+        return { cos: Math.cos(rad), sin: Math.sin(rad) };
+    }
+   
 }
 
 export type Point = { x: number; y: number };
 export type Arc = { origin: Point; radius: number; startAngle: number; endAngle: number };
+

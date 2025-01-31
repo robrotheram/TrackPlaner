@@ -1,3 +1,4 @@
+import { TrackPieceBase } from "../Track";
 import { Point } from "../Track/base";
 
 export interface Measurement {
@@ -49,10 +50,15 @@ const drawPerpendicularMarkers = (
     ctx.lineWidth = 2;
     ctx.stroke();
 };
+
 export const calculateDistance = (p1: Point, p2: Point) => {
     const dx = p1.x - p2.x;
     const dy = p1.y - p2.y;
     return Math.sqrt(dx * dx + dy * dy);
+};
+
+export const arePointsClose = (p1: Point, p2: Point, threshold: number): boolean => {
+    return calculateDistance(p1, p2) <= threshold;
 };
 
 export const isPointNearLine = (point: Point, line: Measurement, threshold = 5) => {
@@ -102,4 +108,36 @@ export const drawMeasurements = (ctx: CanvasRenderingContext2D, measurements: Me
             (start.y + end.y) / 2
         );
     });
+};
+
+export const findNearestEndpoint = (
+    currentPiece: any,
+    allTracks: any[],
+    currentPoint: Point,
+    threshold: number
+): { point: Point | null; track: TrackPieceBase | null } => {
+    let nearestPoint: Point | null = null;
+    let nearestTrack: TrackPieceBase | null = null;
+    let minDistance = threshold;
+
+    allTracks.forEach(track => {
+        if (track === currentPiece) return;
+
+        const markers = track.getMarkerPoints();
+        const endpoints = [markers.start, markers.end];
+
+        endpoints.forEach(point => {
+            const dx = point.x - currentPoint.x;
+            const dy = point.y - currentPoint.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance < minDistance) {
+                minDistance = distance;
+                nearestPoint = point;
+                nearestTrack = track;
+            }
+        });
+    });
+
+    return { point: nearestPoint, track: nearestTrack };
 };

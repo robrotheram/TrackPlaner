@@ -1,5 +1,6 @@
-import { tieThikness, tieSpacing, tieWidth, tieHeight, railWidth, ToRadians, gridSize, Point, Arc } from "./base";
-import { TrackPieceBase } from "./base";
+import { TrackPack } from ".";
+import { TrackPieceBase, tieThikness, tieSpacing, tieWidth, tieHeight, railWidth, Point, Arc } from "./base";
+import { ToRadians } from "./utils";
 
 export class TrackCurvedPiece extends TrackPieceBase {
     startAngle: number;
@@ -14,8 +15,24 @@ export class TrackCurvedPiece extends TrackPieceBase {
         this.code = code;
     }
 
+    getMarkerPoints() {
+        const { origin, startAngle, endAngle } = this.getArc(this.x, this.y);
+        const start = {
+            x: origin.x + Math.cos(startAngle) * this.radius,
+            y: origin.y + Math.sin(startAngle) * this.radius,
+        };
+        const end = {
+            x: origin.x + Math.cos(endAngle) * this.radius,
+            y: origin.y + Math.sin(endAngle) * this.radius,
+        };
+        return { center: this.getCenter(), start, end };
+    }
+
     draw(ctx: CanvasRenderingContext2D, isSelected?: boolean) {
-        const { origin, startAngle, endAngle } = this.getArc(0, 0);
+        const { center, start, end } = this.getMarkerPoints()
+        this.markers(ctx, center, start, end);
+
+        const { origin, startAngle, endAngle, } = this.getArc(0, 0);
 
         ctx.save();
         ctx.translate(this.x + origin.x, this.y + origin.y);
@@ -56,22 +73,22 @@ export class TrackCurvedPiece extends TrackPieceBase {
         const dx = x - origin.x;
         const dy = y - origin.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
-    
+
         // Check if point is within the tolerance band of the arc radius
         if (Math.abs(distance - this.radius) > tolerance) {
             return false;
         }
-    
+
         // Rotate the point to align with the arc's rotation
         const rotatedDx = dx * Math.cos(-ToRadians(this.rotation)) - dy * Math.sin(-ToRadians(this.rotation));
         const rotatedDy = dx * Math.sin(-ToRadians(this.rotation)) + dy * Math.cos(-ToRadians(this.rotation));
-    
+
         // Calculate the angle of the rotated point
         let angle = Math.atan2(rotatedDy, rotatedDx);
-        
+
         // Normalize angles to 0-2π range
         const normalizeAngle = (a: number) => (a < 0 ? a + 2 * Math.PI : a) % (2 * Math.PI);
-        
+
         const normalizedStart = normalizeAngle(ToRadians(this.startAngle));
         const normalizedEnd = normalizeAngle(ToRadians(this.endAngle));
         angle = normalizeAngle(angle);
@@ -95,9 +112,6 @@ export class TrackCurvedPiece extends TrackPieceBase {
         let x = h + this.radius * Math.cos(theta);
         let y = k + this.radius * Math.sin(theta);
 
-        // x = Math.round(x / gridSize) * gridSize;
-        // y = Math.round(y / gridSize) * gridSize;
-
         const startAngle = ToRadians(this.startAngle) + ToRadians(this.rotation);
         const endAngle = ToRadians(this.endAngle) + ToRadians(this.rotation);
 
@@ -109,26 +123,46 @@ export class TrackCurvedPiece extends TrackPieceBase {
         if (theta < 0) {
             theta += 2 * Math.PI;
         }
-        return (this.radius- railWidth) * theta;
+        return (this.radius - railWidth) * theta;
     }
 
     setLocation(x: number, y: number): void {
-        const center = this.getCenter();
-        const dx = center.x - this.x;
-        const dy = center.y - this.y;
-        this.x = Math.round((x - dx) / gridSize) * gridSize;
-        this.y = Math.round((y - dy) / gridSize) * gridSize;
+        const { start, end } = this.getMarkerPoints();
+        const startOffsetX = x - start.x;
+        const startOffsetY = y - start.y;
+        const endOffsetX = x - end.x;
+        const endOffsetY = y - end.y;
 
-        const radiusRemainder = this.radius % gridSize;
-        const correction = radiusRemainder <= gridSize / 2 ? -radiusRemainder : gridSize - radiusRemainder;
-        if (correction !== 0) {
-            this.x += correction;
-            this.y += correction;
+        // Determine which endpoint is closer to the new position
+        const startDistance = Math.hypot(startOffsetX, startOffsetY);
+        const endDistance = Math.hypot(endOffsetX, endOffsetY);
+
+        if (startDistance < endDistance) {
+            // Update the position based on the start endpoint
+            this.x += startOffsetX;
+            this.y += startOffsetY;
+        } else {
+            // Update the position based on the end endpoint
+            this.x += endOffsetX;
+            this.y += endOffsetY;
         }
     }
 
     clone(): TrackCurvedPiece {
         return new TrackCurvedPiece(this.code, this.x, this.y, this.rotation, this.startAngle, this.endAngle, this.radius);
     }
+
+    serialise(): TrackPack {
+        return {
+            code: this.code,
+            type: "curve",
+            startAngle: this.startAngle,
+            endAngle: this.endAngle,
+            radius: this.radius,
+            position: { x: this.x, y: this.y },
+            rotation: this.rotation
+        }
+    }
+
 }
 
