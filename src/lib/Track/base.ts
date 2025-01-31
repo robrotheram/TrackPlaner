@@ -1,3 +1,6 @@
+import { TrackPack } from ".";
+import { ToRadians } from "./utils";
+
 export const railWidth = 8; // Railwidth /2
 export const tieWidth = 15; // Width of track /2
 export const tieHeight = 2;
@@ -23,14 +26,11 @@ export abstract class TrackPieceBase {
     abstract getCenter(): { x: number, y: number };
     abstract clone(): TrackPieceBase;
     abstract getMarkerPoints():{center:Point, start:Point, end:Point}
-    
+    abstract serialise():TrackPack
 
     setLocation(x: number, y: number) {
-        const center = this.getCenter();
-        const dx = center.x - this.x;
-        const dy = center.y - this.y;
-        this.x = Math.round((x - dx) / gridSize) * gridSize;
-        this.y = Math.round((y - dy) / 1) * 1;
+        this.x = x;
+        this.y = y;
     }
 
     setRotation(rotation: number) {
@@ -60,13 +60,6 @@ export abstract class TrackPieceBase {
    
 }
 
-export function ToRadians(degrees: number): number {
-    return degrees * (Math.PI / 180);
-}
-
-export function radiansToDegrees(radians: number): number {
-    return radians * (180 /  Math.PI);
-}
-
 export type Point = { x: number; y: number };
 export type Arc = { origin: Point; radius: number; startAngle: number; endAngle: number };
+

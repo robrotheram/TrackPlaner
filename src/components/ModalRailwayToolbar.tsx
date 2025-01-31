@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, ChangeEvent } from 'react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
@@ -11,15 +11,17 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { ShoppingCart, ZoomOut, Save, FileInput, Ruler, Eraser, RotateCcw, Camera, RailSymbol, LucideTrainTrack, LayoutDashboard, Settings, RotateCw, Move, MousePointerClick, DraftingCompass, ZoomInIcon } from 'lucide-react'
 import { useModlerContext } from '@/context/ModlerContext'
-import { CreateTrackPiece, HornbyTrackPack } from '@/lib/trackPacks/hornby'
+import { HornbyTrackPack } from '@/lib/trackPacks/hornby'
 import { Canvas } from './BaseGrid'
 import { themes } from '@/lib/Themes'
-import { TrackPieceBase } from '@/lib/Track'
+import { TrackPack, TrackPieceBase } from '@/lib/Track'
+import { CreateTrackPiece } from '@/lib/Track/utils'
 
 
 export function ModelRailwayToolbar() {
+    const fileInputRef = useRef<HTMLInputElement>(null);
     const [layoutName, setLayoutName] = useState("My Railway Layout")
-    const { setTool, setRotation, setScale } = useModlerContext();
+    const { state, setState, setTool, setRotation, setScale } = useModlerContext();
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
     const [themeIndex, setThemeIndex] = useState(0);
@@ -33,6 +35,71 @@ export function ModelRailwayToolbar() {
             link.download = 'screenshot.png';
             link.click();
         }
+    };
+
+    const handleSave = async() => {
+        try {
+            // Convert the store object to a JSON string
+            const data: TrackPack[] = state.tracks.map(track => track.serialise())
+            const jsonData = JSON.stringify(data);
+            const blob = new Blob([jsonData], { type: 'application/octet-stream' });
+
+            if ('showSaveFilePicker' in window) {
+                // @ts-ignore: Types for showSaveFilePicker might not be available.
+                const fileHandle = await(window as any).showSaveFilePicker({
+                    suggestedName: 'layout.bin',
+                    types: [
+                        {
+                            description: 'Binary Files',
+                            accept: { 'application/octet-stream': ['.bin'] },
+                        },
+                    ],
+                });
+                const writableStream = await fileHandle.createWritable();
+                await writableStream.write(blob);
+                await writableStream.close();
+            } else {
+                // Fallback: Use traditional download via an anchor element.
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'layout.bin';
+                a.click();
+                window.URL.revokeObjectURL(url);
+            }
+        } catch (error) {
+            console.error("Error during save:", error);
+        }
+    }
+
+    const handleLoadClick = () => {
+        console.log("HELLO")
+        fileInputRef.current?.click();
+    };
+
+    const handleLoad = (e: ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const result = event.target?.result;
+            if (typeof result === 'string') {
+                try {
+                    const loadedData: TrackPack[] = JSON.parse(result);
+                    const tracks: TrackPieceBase[] = loadedData.map(track => CreateTrackPiece(track))
+                    console.log(loadedData)
+                    setState(prev => ({
+                        ...prev,
+                        tracks
+                    }));
+                } catch (error) {
+                    console.error('Error parsing the loaded file:', error);
+                }
+            }
+        };
+
+        reader.readAsText(file);
     };
 
     return (
@@ -59,12 +126,12 @@ export function ModelRailwayToolbar() {
                                     <Button variant="outline"><DraftingCompass /><span className='hidden sm:block'>Tools</span></Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent>
-                                
-                                <DropdownMenuItem onClick={() => { setTool("MOVE") }}>
-                                    <MousePointerClick className="h-4 w-4 mr-2" />
+
+                                    <DropdownMenuItem onClick={() => { setTool("MOVE") }}>
+                                        <MousePointerClick className="h-4 w-4 mr-2" />
                                         Edit
                                     </DropdownMenuItem>
-                                    
+
                                     <DropdownMenuItem onClick={() => { setTool("ROTATE") }}>
                                         <RotateCw className="h-4 w-4 mr-2" />
                                         Rotate Piece
@@ -89,12 +156,13 @@ export function ModelRailwayToolbar() {
                                     <Button variant="outline"><LayoutDashboard className='h-8 w-8' /><span className='hidden sm:block'>Layout</span> </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent>
-                                    <DropdownMenuItem disabled>
+                                    <DropdownMenuItem onSelect={handleSave}>
                                         <Save className="h-4 w-4 mr-2" />
                                         Save Layout
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem disabled>
+                                    <DropdownMenuItem onSelect={handleLoadClick}>
                                         <FileInput className="h-4 w-4 mr-2" />
+
                                         Load Layout
                                     </DropdownMenuItem>
                                     <DropdownMenuItem onClick={takeScreenshot}>
@@ -105,7 +173,7 @@ export function ModelRailwayToolbar() {
                             </DropdownMenu>
                             <ShoppingListSheet />
                             <ThemeSelector setThemeIndex={setThemeIndex} />
-
+                            <input ref={fileInputRef} type="file" onChange={(e) => handleLoad(e)} accept=".bin" style={{ display: "none" }}></input>
                         </div>
                     </div>
                 </nav>
@@ -116,13 +184,13 @@ export function ModelRailwayToolbar() {
                                 <ZoomInIcon />
                             </Button>
                             <Button size="icon" className="rounded-full" title="Zoom Out" onClick={() => setScale(-0.1)}>
-                                <ZoomOut/>
+                                <ZoomOut />
                             </Button>
                             <Button size="icon" className="rounded-full" title="Rotate Canvas Clockwise" onClick={() => setRotation(Math.PI / 12)}>
-                                <RotateCw/>
+                                <RotateCw />
                             </Button>
                             <Button size="icon" className="rounded-full" title="Rotate Canvas Counterclockwise" onClick={() => setRotation(-Math.PI / 12)}>
-                                <RotateCcw/>
+                                <RotateCcw />
                             </Button>
                         </div>
                         <Canvas theme={themes[themeIndex]} canvasRef={canvasRef} />
@@ -144,7 +212,7 @@ const AddTrackButton = () => {
         </DropdownMenuTrigger>
         <DropdownMenuContent>
             {HornbyTrackPack.map((track) =>
-                <DropdownMenuItem key={track.code} className='flex items-center' onClick={() => addTrack(CreateTrackPiece(track, 100, 100))}>
+                <DropdownMenuItem key={track.code} className='flex items-center' onClick={() => addTrack(CreateTrackPiece(track))}>
                     <img src={track.image} alt={track.name} className='h-24' />
                     <span>{track.code}</span>
                 </DropdownMenuItem>
@@ -157,7 +225,7 @@ const AddTrackButton = () => {
 const ShoppingListSheet = () => {
     const { state } = useModlerContext();
 
-     const trackSummary = state.tracks.reduce((acc: { [key: string]: number }, track: TrackPieceBase) => {
+    const trackSummary = state.tracks.reduce((acc: { [key: string]: number }, track: TrackPieceBase) => {
         acc[track.code] = (acc[track.code] || 0) + 1;
         return acc;
     }, {});

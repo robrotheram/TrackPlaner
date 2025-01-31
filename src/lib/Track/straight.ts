@@ -1,4 +1,6 @@
-import { Point, railWidth, tieSpacing, tieThikness, tieWidth, ToRadians, TrackPieceBase } from "./base";
+import { TrackPack } from ".";
+import { Point, railWidth, tieSpacing, tieThikness, tieWidth, TrackPieceBase } from "./base";
+import { ToRadians } from "./utils";
 
 export class TrackStraightPiece extends TrackPieceBase {
     length: number;
@@ -76,6 +78,16 @@ export class TrackStraightPiece extends TrackPieceBase {
 
     clone(): TrackStraightPiece {
         return new TrackStraightPiece(this.code, this.x, this.y, this.rotation, this.length);
+    }
+
+    serialise(): TrackPack {
+        return {
+            code: this.code,
+            type: "straight",
+            length: this.length,
+            position: {x: this.x, y: this.y},
+            rotation: this.rotation
+        }
     }
 }
 

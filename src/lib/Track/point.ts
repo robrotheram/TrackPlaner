@@ -1,5 +1,7 @@
-import { railWidth, ToRadians, Point, tieSpacing, tieThikness, tieWidth } from "./base";
+import { TrackPack } from ".";
+import { railWidth, Point, tieSpacing, tieThikness, tieWidth } from "./base";
 import { TrackCurvedPiece } from "./curve";
+import { ToRadians } from "./utils";
 
 export abstract class TrackPointPiece extends TrackCurvedPiece {
     length: number;
@@ -36,8 +38,8 @@ export abstract class TrackPointPiece extends TrackCurvedPiece {
             y: center.y + halfLength * sin,
         };
         const arcOrigin: Point = {
-            x: start.x + (this.radius*directionMultiplier) * Math.cos(ToRadians(this.rotation + 90)),
-            y: start.y + (this.radius*directionMultiplier) * Math.sin(ToRadians(this.rotation + 90)),
+            x: start.x + (this.radius * directionMultiplier) * Math.cos(ToRadians(this.rotation + 90)),
+            y: start.y + (this.radius * directionMultiplier) * Math.sin(ToRadians(this.rotation + 90)),
         };
 
         return { center, start, end, arcOrigin };
@@ -48,20 +50,15 @@ export abstract class TrackPointPiece extends TrackCurvedPiece {
         const directionMultiplier = this.getDirectionMultiplier();
 
         // Calculate the start and end angles correctly depending on the handedness
-        const startAngle = ToRadians(this.startAngle) + ToRadians(this.rotation - (90*directionMultiplier));
-        const endAngle = ToRadians(this.endAngle) + ToRadians(this.rotation -(directionMultiplier === 1 ? 90 : -45)); 
+        const startAngle = ToRadians(this.startAngle) + ToRadians(this.rotation - (90 * directionMultiplier));
+        const endAngle = ToRadians(this.endAngle) + ToRadians(this.rotation - (directionMultiplier === 1 ? 90 : -45));
 
         // Adjust for right-handed or left-handed points
         let adjustedStartAngle = startAngle;
         let adjustedEndAngle = endAngle;
 
         // Right-handed track (clockwise): use the angles as is
-        if (directionMultiplier === 1) {
-            adjustedStartAngle = startAngle;
-            adjustedEndAngle = endAngle;
-        }
-        // Left-handed track (counter-clockwise): swap the angles
-        else {
+        if (directionMultiplier === -1) {
             adjustedStartAngle = endAngle;
             adjustedEndAngle = startAngle;
         }
@@ -77,8 +74,8 @@ export abstract class TrackPointPiece extends TrackCurvedPiece {
         for (let i = -halfLength + tieThikness * 2; i < halfLength - tieThikness / 2; i += tieSpacing) {
             const d = distanceToArc(arcOrigin, start.x, start.y, i + halfLength);
             ctx.beginPath();
-            ctx.moveTo(i, -tieWidth*directionMultiplier);
-            ctx.lineTo(i, (tieWidth + d)*directionMultiplier);
+            ctx.moveTo(i, -tieWidth * directionMultiplier);
+            ctx.lineTo(i, (tieWidth + d) * directionMultiplier);
             ctx.strokeStyle = isSelected ? 'red' : '#000';
             ctx.lineWidth = tieThikness;
             ctx.lineCap = "butt";
@@ -114,7 +111,7 @@ export abstract class TrackPointPiece extends TrackCurvedPiece {
         ctx.translate(this.x + this.length / 2, this.y);
         ctx.rotate(ToRadians(this.rotation));
 
-         
+
 
         // Draw straight track section
         ctx.strokeStyle = isSelected ? 'red' : '#9B9B97';
@@ -127,8 +124,13 @@ export abstract class TrackPointPiece extends TrackCurvedPiece {
         ctx.lineTo(this.length / 2, railWidth);
         ctx.stroke();
 
-       
+
         ctx.restore();
+    }
+
+    setLocation(x: number, y: number): void {
+        this.x = x;
+        this.y = y;
     }
 
     getCenter(x1 = this.x, y1 = this.y): Point {
@@ -151,6 +153,16 @@ export abstract class TrackPointPiece extends TrackCurvedPiece {
         return handedness === "right"
             ? new RightHandedTrackPointPiece(this.code, this.x, this.y, this.rotation, this.length)
             : new LeftHandedTrackPointPiece(this.code, this.x, this.y, this.rotation, this.length);
+    }
+
+    serialise(): TrackPack {
+        return {
+            code: this.code,
+            type: this.getDirectionMultiplier() === 1 ? "rhpoint" : "lhpoint",
+            length: this.length,
+            position: { x: this.x, y: this.y },
+            rotation: this.rotation
+        }
     }
 
 }

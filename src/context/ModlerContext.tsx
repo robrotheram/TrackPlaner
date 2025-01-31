@@ -17,7 +17,7 @@ const initialState: CanvasState = {
     lastY: 0,
     pinchDistance: 0,
     pinchAngle: 0,
-    tool: 'PANNING',
+    tool: 'MOVE',
     tracks: [],
 }
 

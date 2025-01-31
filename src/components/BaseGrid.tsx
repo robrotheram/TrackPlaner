@@ -1,10 +1,11 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useModlerContext } from '@/context/ModlerContext';
 import { CanvasContext, DrawGrid, getPinchAngle, getPinchDistance, ToolHandler } from '@/lib/Canvas/grid';
-import { drawMeasurements, isPointNearLine, Measurement } from '@/lib/Canvas/measure';
-import { Point } from '@/lib/Track/base';
+import { drawMeasurements, findNearestEndpoint, isPointNearLine, Measurement } from '@/lib/Canvas/measure';
+import { Point, TrackPieceBase } from '@/lib/Track/base';
 import { Theme, Tool } from '@/types';
 import { Eraser, Ruler, Move, Rotate3D } from 'lucide-react';
+import { TrackCurvedPiece } from '@/lib/Track';
 
 
 
@@ -12,9 +13,13 @@ interface CanvasProps {
     theme: Theme;
     canvasRef: React.RefObject<HTMLCanvasElement>;
 }
-
+type Endpoint = {
+    nearestPoint?:Point
+    nearestTrack?:TrackPieceBase
+    point?:Point
+}
 export const Canvas: React.FC<CanvasProps> = ({ theme, canvasRef }) => {
-    const { state, setState } = useModlerContext();
+    const { state, setState, setTool } = useModlerContext();
     const [cursorPosition, setCursorPosition] = useState<Point | null>(null);
     const [measurements, setMeasurements] = useState<Measurement[]>([]);
     const [canGrab, setCanGrab] = useState(false);
@@ -38,17 +43,69 @@ export const Canvas: React.FC<CanvasProps> = ({ theme, canvasRef }) => {
             onMouseMove: (e) => {
                 const { x, y } = getRealCoordinates(e.clientX, e.clientY);
                 if (state.isDragging && state.selectedPiece !== undefined) {
+                    const selectedTrack = state.tracks[state.selectedPiece];
                     const updatedPieces = [...state.tracks];
-                    updatedPieces[state.selectedPiece].setLocation(x, y);
+            
+                    // First update the position normally
+                    selectedTrack.setLocation(x, y);
+            
+                    // Get the current piece's endpoints
+                    const markers = selectedTrack.getMarkerPoints();
+                    const endpoints = [
+                        { point: markers.start, isStart: true },
+                        { point: markers.end, isStart: false }
+                    ];
+            
+                    // Find the nearest endpoint among all endpoints
+                    let nearestEndpoint: Endpoint = {};
+                    let minDistance = Infinity;
+            
+                    endpoints.forEach(({ point }) => {
+                        const { point: nearestPoint, track: nearestTrack } = findNearestEndpoint(
+                            selectedTrack,
+                            state.tracks,
+                            point,
+                            20 / state.scale
+                        );
+            
+                        if (nearestPoint && nearestTrack) {
+                            const distance = Math.hypot(nearestPoint.x - point.x, nearestPoint.y - point.y);
+                            if (distance < minDistance) {
+                                minDistance = distance;
+                                nearestEndpoint = { nearestPoint, nearestTrack, point };
+                            }
+                        }
+                    });
+            
+                    // Snap to the nearest endpoint if it exists
+                    if (nearestEndpoint.nearestPoint && nearestEndpoint.point) {
+                        const { nearestPoint, point } = nearestEndpoint;
+                        const dx = nearestPoint.x - point.x;
+                        const dy = nearestPoint.y - point.y;
+            
+                        // Adjust the position to align the endpoints
+                        
+                        if (selectedTrack instanceof TrackCurvedPiece) {
+                            // Special handling for curved tracks
+                            selectedTrack.setLocation(nearestPoint.x, nearestPoint.y);
+                        } else {
+                            selectedTrack.setLocation(
+                                selectedTrack.x + dx,
+                                selectedTrack.y + dy
+                            );
+                        }
+                    }
+            
+                    updatedPieces[state.selectedPiece] = selectedTrack;
                     setState(prev => ({
                         ...prev,
                         tracks: updatedPieces,
                     }));
-                }else{
+                } else {
                     const selectTrack = state.tracks.findIndex((piece: any) =>
                         piece.isSelectable(x, y, 20 / state.scale)
                     );
-                    setCanGrab(selectTrack !== -1)
+                    setCanGrab(selectTrack !== -1);
                 }
             },
             onMouseUp: () => {
@@ -60,7 +117,7 @@ export const Canvas: React.FC<CanvasProps> = ({ theme, canvasRef }) => {
             }
         },
         ROTATE: {
-            icon: ({ size, color }) => <Rotate3D size={size} color={color}  />,
+            icon: ({ size, color }) => <Rotate3D size={size} color={color} />,
             onMouseDown: (e) => {
                 const updatedPieces = [...state.tracks];
                 const coords = getRealCoordinates(e.clientX, e.clientY);
@@ -80,7 +137,7 @@ export const Canvas: React.FC<CanvasProps> = ({ theme, canvasRef }) => {
             },
         },
         MEASURE: {
-            icon: ({ size, color, fill }) => <Ruler size={size} color={color} fill={fill}/>,
+            icon: ({ size, color, fill }) => <Ruler size={size} color={color} fill={fill} />,
             onMouseDown: (e) => {
                 const coords = getRealCoordinates(e.clientX, e.clientY);
                 if (!state.isToolActive) {
@@ -138,7 +195,7 @@ export const Canvas: React.FC<CanvasProps> = ({ theme, canvasRef }) => {
             }
         },
         PANNING: {
-            icon: ({ size, color, fill }) => <Move size={size} color={color}  fill={fill}/>,
+            icon: ({ size, color, fill }) => <Move size={size} color={color} fill={fill} />,
             onMouseDown: (e) => {
                 setState(prev => ({
                     ...prev,
@@ -231,6 +288,7 @@ export const Canvas: React.FC<CanvasProps> = ({ theme, canvasRef }) => {
 
     const handleMouseDown = useCallback((e: React.MouseEvent) => {
         const currentTool = e.button === 1 ? toolHandlers["PANNING"] : toolHandlers[state.tool];
+        if(e.button === 1) setTool('PANNING')
         const context: CanvasContext = {
             getRealCoordinates,
             setState,
@@ -243,7 +301,7 @@ export const Canvas: React.FC<CanvasProps> = ({ theme, canvasRef }) => {
     }, [state, getRealCoordinates, setState, setMeasurements]);
 
     const handleMouseMove = useCallback((e: React.MouseEvent) => {
-        const currentTool = state.isPanning? toolHandlers["PANNING"] : toolHandlers[state.tool];
+        const currentTool = state.isPanning ? toolHandlers["PANNING"] : toolHandlers[state.tool];
         const context: CanvasContext = {
             getRealCoordinates,
             setState,
@@ -258,6 +316,7 @@ export const Canvas: React.FC<CanvasProps> = ({ theme, canvasRef }) => {
 
     const handleMouseUp = useCallback((e: React.MouseEvent) => {
         const currentTool = e.button === 1 ? toolHandlers["PANNING"] : toolHandlers[state.tool];
+        if(e.button === 1) setTool('MOVE')
         const context: CanvasContext = {
             getRealCoordinates,
             setState,
@@ -272,7 +331,6 @@ export const Canvas: React.FC<CanvasProps> = ({ theme, canvasRef }) => {
 
 
     const handleWheel = (e: React.WheelEvent) => {
-        // e.preventDefault();
         if (e.ctrlKey || e.metaKey) {
             // Zoom
             const delta = -e.deltaY * 0.001;
@@ -295,11 +353,11 @@ export const Canvas: React.FC<CanvasProps> = ({ theme, canvasRef }) => {
         e.preventDefault();
         const rect = canvasRef.current?.getBoundingClientRect();
         if (!rect) return;
-    
+
         const touch = e.touches[0];
         const clientX = touch.clientX - rect.left;
         const clientY = touch.clientY - rect.top;
-    
+
         if (e.touches.length === 1) {
             setState(prev => ({
                 ...prev,
@@ -315,25 +373,25 @@ export const Canvas: React.FC<CanvasProps> = ({ theme, canvasRef }) => {
             }));
         }
     }, [setState, canvasRef]);
-    
+
     const handleTouchMove = useCallback((e: React.TouchEvent<HTMLCanvasElement>) => {
         e.preventDefault();
         const rect = canvasRef.current?.getBoundingClientRect();
         if (!rect) return;
-    
+
         const touch = e.touches[0];
         const clientX = touch.clientX - rect.left;
         const clientY = touch.clientY - rect.top;
-    
+
         if (e.touches.length === 1 && state.isDragging) {
             const dx = clientX - state.lastX;
             const dy = clientY - state.lastY;
-            
+
             const cos = Math.cos(-state.rotation);
             const sin = Math.sin(-state.rotation);
             const rotatedDx = dx * cos - dy * sin;
             const rotatedDy = dx * sin + dy * cos;
-    
+
             setState(prev => ({
                 ...prev,
                 offsetX: prev.offsetX + rotatedDx,
@@ -344,7 +402,7 @@ export const Canvas: React.FC<CanvasProps> = ({ theme, canvasRef }) => {
         }
         // ... rest of the pinch handling remains the same
     }, [state, setState, canvasRef]);
-    
+
     const handleTouchEnd = useCallback(() => {
         setState(prev => ({
             ...prev,
@@ -364,16 +422,16 @@ export const Canvas: React.FC<CanvasProps> = ({ theme, canvasRef }) => {
         document.addEventListener('wheel', preventZoom, { passive: false });
         return () => document.removeEventListener('wheel', preventZoom);
     }, []);
-    
 
-    const getCursor = ()  => {
-        if (toolHandlers[state.tool].icon){
+
+    const getCursor = () => {
+        if (toolHandlers[state.tool].icon) {
             return "none"
         }
-        if (state.selectedPiece && state.selectedPiece !== -1){
+        if (state.selectedPiece && state.selectedPiece !== -1) {
             return "grabbing"
         }
-        return canGrab? "grab": "pointer"
+        return canGrab ? "grab" : "pointer"
     }
     return (
         <>
