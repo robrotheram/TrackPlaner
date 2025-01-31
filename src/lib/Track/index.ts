@@ -1,4 +1,4 @@
-import { Point, TrackPieceBase } from "./base";
+import { Point } from "./base";
 
 export { TrackPieceBase } from "./base"
 export { TrackStraightPiece } from "./straight"
@@ -22,16 +22,3 @@ export type TrackPack = {
     position?: Point;
     rotation?: number;
 };
-
-
-
-export const CreateTrackPiece = (trackPack: TrackPack, x?: number, y?: number): TrackPieceBase => {
-    switch (trackPack.type) {
-        case "straight":
-            return new TrackStraightPiece(trackPack.code, x!, y!, 0, trackPack.length!);
-        case "curve":
-            return new TrackCurvedPiece(trackPack.code, x!, y!, 0, trackPack.endAngle ?? 0, trackPack.endAngle!, trackPack.radius!);
-        default:
-            throw new Error("Invalid track type");
-    }
-}
