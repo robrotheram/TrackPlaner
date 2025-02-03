@@ -1,12 +1,5 @@
+import { Measurement, Point } from "@/types";
 import { TrackPieceBase } from "../Track";
-import { Point } from "../Track/base";
-
-export interface Measurement {
-    start: Point;
-    end: Point;
-    distance: string;
-}
-
 
 
 const drawPerpendicularMarkers = (
@@ -103,7 +96,7 @@ export const drawMeasurements = (ctx: CanvasRenderingContext2D, measurements: Me
         ctx.font = "16px Arial";
         ctx.fillStyle = "red";
         ctx.fillText(
-            `${distance}px`,
+            `${distance.toFixed(0)} cm`,
             (start.x + end.x) / 2,
             (start.y + end.y) / 2
         );

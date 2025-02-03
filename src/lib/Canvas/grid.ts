@@ -1,6 +1,4 @@
 import { CanvasState, Theme } from "@/types"
-import { Measurement } from "./measure";
-import { Point } from "../Track/base";
 
 export const DrawGrid = (
     canvas: HTMLCanvasElement,
@@ -86,28 +84,6 @@ export const DrawGrid = (
     ctx.globalAlpha = 1;
 };
 
-type ToolIcon = (props: { size: number; color: string, fill: string }) => JSX.Element;
-
-export type ToolHandler = {
-    icon?: ToolIcon;
-    onMouseDown?: (e: React.MouseEvent, context: CanvasContext) => void;
-    onMouseMove?: (e: React.MouseEvent, context: CanvasContext) => void;
-    onMouseUp?: (e: React.MouseEvent, context: CanvasContext) => void;
-};
-
-export type CanvasContext = {
-    getRealCoordinates: (x: number, y: number) => Point;
-    setState: React.Dispatch<React.SetStateAction<any>>;
-    state: any;
-    setMeasurements: React.Dispatch<React.SetStateAction<Measurement[]>>;
-    measurements: Measurement[];
-};
-
-// Add to existing interfaces
-export interface TouchState {
-    pinchDistance: number;
-    pinchAngle: number;
-}
 
 // Add utility functions
 export const getPinchDistance = (touches: React.TouchList) => {

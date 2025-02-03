@@ -1,3 +1,4 @@
+import { Point } from "@/types";
 import { TrackPack } from ".";
 import { ToRadians } from "./utils";
 
@@ -28,9 +29,26 @@ export abstract class TrackPieceBase {
     abstract getMarkerPoints():{center:Point, start:Point, end:Point}
     abstract serialise():TrackPack
 
-    setLocation(x: number, y: number) {
-        this.x = x;
-        this.y = y;
+    setLocation(x: number, y: number): void {
+        const { start, end } = this.getMarkerPoints();
+        const startOffsetX = x - start.x;
+        const startOffsetY = y - start.y;
+        const endOffsetX = x - end.x;
+        const endOffsetY = y - end.y;
+
+        // Determine which endpoint is closer to the new position
+        const startDistance = Math.hypot(startOffsetX, startOffsetY);
+        const endDistance = Math.hypot(endOffsetX, endOffsetY);
+
+        if (startDistance < endDistance) {
+            // Update the position based on the start endpoint
+            this.x += startOffsetX;
+            this.y += startOffsetY;
+        } else {
+            // Update the position based on the end endpoint
+            this.x += endOffsetX;
+            this.y += endOffsetY;
+        }
     }
 
     setRotation(rotation: number) {
@@ -59,7 +77,3 @@ export abstract class TrackPieceBase {
     }
    
 }
-
-export type Point = { x: number; y: number };
-export type Arc = { origin: Point; radius: number; startAngle: number; endAngle: number };
-

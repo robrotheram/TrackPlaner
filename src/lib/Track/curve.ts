@@ -1,5 +1,6 @@
+import { Arc, Point } from "@/types";
 import { TrackPack } from ".";
-import { TrackPieceBase, tieThikness, tieSpacing, tieWidth, tieHeight, railWidth, Point, Arc } from "./base";
+import { TrackPieceBase, tieThikness, tieSpacing, tieWidth, tieHeight, railWidth, } from "./base";
 import { ToRadians } from "./utils";
 
 export class TrackCurvedPiece extends TrackPieceBase {
@@ -124,28 +125,6 @@ export class TrackCurvedPiece extends TrackPieceBase {
             theta += 2 * Math.PI;
         }
         return (this.radius - railWidth) * theta;
-    }
-
-    setLocation(x: number, y: number): void {
-        const { start, end } = this.getMarkerPoints();
-        const startOffsetX = x - start.x;
-        const startOffsetY = y - start.y;
-        const endOffsetX = x - end.x;
-        const endOffsetY = y - end.y;
-
-        // Determine which endpoint is closer to the new position
-        const startDistance = Math.hypot(startOffsetX, startOffsetY);
-        const endDistance = Math.hypot(endOffsetX, endOffsetY);
-
-        if (startDistance < endDistance) {
-            // Update the position based on the start endpoint
-            this.x += startOffsetX;
-            this.y += startOffsetY;
-        } else {
-            // Update the position based on the end endpoint
-            this.x += endOffsetX;
-            this.y += endOffsetY;
-        }
     }
 
     clone(): TrackCurvedPiece {

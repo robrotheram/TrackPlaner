@@ -1,240 +1,19 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useModlerContext } from '@/context/ModlerContext';
-import { CanvasContext, DrawGrid, getPinchAngle, getPinchDistance, ToolHandler } from '@/lib/Canvas/grid';
-import { drawMeasurements, findNearestEndpoint, isPointNearLine, Measurement } from '@/lib/Canvas/measure';
-import { Point, TrackPieceBase } from '@/lib/Track/base';
-import { Theme, Tool } from '@/types';
-import { Eraser, Ruler, Move, Rotate3D } from 'lucide-react';
-import { TrackCurvedPiece } from '@/lib/Track';
-
-
+import { DrawGrid, getPinchAngle, getPinchDistance } from '@/lib/Canvas/grid';
+import { drawMeasurements } from '@/lib/Canvas/measure';
+import { CanvasContext, Point, Theme } from '@/types';
+import { toolHandlers } from '@/lib/tools';
 
 interface CanvasProps {
     theme: Theme;
     canvasRef: React.RefObject<HTMLCanvasElement>;
 }
-type Endpoint = {
-    nearestPoint?:Point
-    nearestTrack?:TrackPieceBase
-    point?:Point
-}
+
 export const Canvas: React.FC<CanvasProps> = ({ theme, canvasRef }) => {
     const { state, setState, setTool } = useModlerContext();
     const [cursorPosition, setCursorPosition] = useState<Point | null>(null);
-    const [measurements, setMeasurements] = useState<Measurement[]>([]);
-    const [canGrab, setCanGrab] = useState(false);
 
-    const toolHandlers: Record<Tool, ToolHandler> = {
-        MOVE: {
-            onMouseDown: (e) => {
-                const coords = getRealCoordinates(e.clientX, e.clientY);
-                const selectTrack = state.tracks.findIndex((piece: any) =>
-                    piece.isSelectable(coords.x, coords.y, 20 / state.scale)
-                );
-
-                setState(prev => ({
-                    ...prev,
-                    isDragging: true,
-                    selectedPiece: selectTrack !== -1 ? selectTrack : undefined,
-                    lastX: coords.x,
-                    lastY: coords.y
-                }));
-            },
-            onMouseMove: (e) => {
-                const { x, y } = getRealCoordinates(e.clientX, e.clientY);
-                if (state.isDragging && state.selectedPiece !== undefined) {
-                    const selectedTrack = state.tracks[state.selectedPiece];
-                    const updatedPieces = [...state.tracks];
-            
-                    // First update the position normally
-                    selectedTrack.setLocation(x, y);
-            
-                    // Get the current piece's endpoints
-                    const markers = selectedTrack.getMarkerPoints();
-                    const endpoints = [
-                        { point: markers.start, isStart: true },
-                        { point: markers.end, isStart: false }
-                    ];
-            
-                    // Find the nearest endpoint among all endpoints
-                    let nearestEndpoint: Endpoint = {};
-                    let minDistance = Infinity;
-            
-                    endpoints.forEach(({ point }) => {
-                        const { point: nearestPoint, track: nearestTrack } = findNearestEndpoint(
-                            selectedTrack,
-                            state.tracks,
-                            point,
-                            20 / state.scale
-                        );
-            
-                        if (nearestPoint && nearestTrack) {
-                            const distance = Math.hypot(nearestPoint.x - point.x, nearestPoint.y - point.y);
-                            if (distance < minDistance) {
-                                minDistance = distance;
-                                nearestEndpoint = { nearestPoint, nearestTrack, point };
-                            }
-                        }
-                    });
-            
-                    // Snap to the nearest endpoint if it exists
-                    if (nearestEndpoint.nearestPoint && nearestEndpoint.point) {
-                        const { nearestPoint, point } = nearestEndpoint;
-                        const dx = nearestPoint.x - point.x;
-                        const dy = nearestPoint.y - point.y;
-            
-                        // Adjust the position to align the endpoints
-                        
-                        if (selectedTrack instanceof TrackCurvedPiece) {
-                            // Special handling for curved tracks
-                            selectedTrack.setLocation(nearestPoint.x, nearestPoint.y);
-                        } else {
-                            selectedTrack.setLocation(
-                                selectedTrack.x + dx,
-                                selectedTrack.y + dy
-                            );
-                        }
-                    }
-            
-                    updatedPieces[state.selectedPiece] = selectedTrack;
-                    setState(prev => ({
-                        ...prev,
-                        tracks: updatedPieces,
-                    }));
-                } else {
-                    const selectTrack = state.tracks.findIndex((piece: any) =>
-                        piece.isSelectable(x, y, 20 / state.scale)
-                    );
-                    setCanGrab(selectTrack !== -1);
-                }
-            },
-            onMouseUp: () => {
-                setState(prev => ({
-                    ...prev,
-                    isDragging: false,
-                    selectedPiece: undefined
-                }));
-            }
-        },
-        ROTATE: {
-            icon: ({ size, color }) => <Rotate3D size={size} color={color} />,
-            onMouseDown: (e) => {
-                const updatedPieces = [...state.tracks];
-                const coords = getRealCoordinates(e.clientX, e.clientY);
-                const selectTrack = state.tracks.findIndex((piece: any) =>
-                    piece.isSelectable(coords.x, coords.y, 20 / state.scale)
-                );
-                console.log(selectTrack)
-                const rotationAmount = e.button === 2 ? -22.5 : 22.5;
-                if (selectTrack !== -1) {
-                    updatedPieces[selectTrack].setRotation(rotationAmount);
-                    setState(prev => ({
-                        ...prev,
-                        tracks: updatedPieces,
-                        selectedPiece: selectTrack !== -1 ? selectTrack : undefined,
-                    }));
-                }
-            },
-        },
-        MEASURE: {
-            icon: ({ size, color, fill }) => <Ruler size={size} color={color} fill={fill} />,
-            onMouseDown: (e) => {
-                const coords = getRealCoordinates(e.clientX, e.clientY);
-                if (!state.isToolActive) {
-                    setMeasurements((prev) => [
-                        ...prev,
-                        { start: coords, end: coords, distance: "0" },
-                    ]);
-                }
-                setState(prev => ({
-                    ...prev,
-                    isToolActive: !state.isToolActive,
-                    lastX: coords.x,
-                    lastY: coords.y
-                }));
-            },
-            onMouseMove: (e) => {
-                if (state.isToolActive) {
-                    const { x, y } = getRealCoordinates(e.clientX, e.clientY);
-                    const dx = x - state.lastX;
-                    const dy = y - state.lastY;
-                    const distance = Math.sqrt(dx * dx + dy * dy).toFixed(2);
-
-                    setMeasurements((prev) => {
-                        const updatedMeasurements = [...prev];
-                        updatedMeasurements[updatedMeasurements.length - 1] = {
-                            start: { x: state.lastX, y: state.lastY },
-                            end: { x, y },
-                            distance,
-                        };
-                        return updatedMeasurements;
-                    });
-                }
-            }
-        },
-        ERASER: {
-            icon: ({ size, color, fill }) => <Eraser size={size} color={color} fill={fill} />,
-            onMouseDown: (e) => {
-                const coords = getRealCoordinates(e.clientX, e.clientY);
-
-                const updatedMeasurements = measurements.filter(
-                    (line: Measurement) => !isPointNearLine(coords, line, 20 / state.scale)
-                );
-                setMeasurements(updatedMeasurements);
-
-                const selectTrack = state.tracks.findIndex((piece: any) =>
-                    piece.isSelectable(coords.x, coords.y, 20 / state.scale)
-                );
-
-                if (selectTrack !== -1) {
-                    setState(prev => ({
-                        ...prev,
-                        tracks: prev.tracks.filter((_: any, index: number) => selectTrack !== index)
-                    }));
-                }
-            }
-        },
-        PANNING: {
-            icon: ({ size, color, fill }) => <Move size={size} color={color} fill={fill} />,
-            onMouseDown: (e) => {
-                setState(prev => ({
-                    ...prev,
-                    isPanning: true,
-                    lastX: e.clientX,
-                    lastY: e.clientY
-                }));
-            },
-            onMouseMove: (e) => {
-                if (!state.isPanning) return
-                const dx = e.clientX - state.lastX;
-                const dy = e.clientY - state.lastY;
-
-                // Apply rotation transformation to the delta
-                const rotation = state.rotation; // Rotation in radians
-                const cos = Math.cos(rotation);
-                const sin = Math.sin(rotation);
-
-                // // Transform the deltas into the rotated coordinate space
-                const rotatedDx = dx * cos + dy * sin;
-                const rotatedDy = -dx * sin + dy * cos;
-
-                // Update the state with the rotated deltas
-                setState((prev) => ({
-                    ...prev,
-                    offsetX: prev.offsetX + rotatedDx,
-                    offsetY: prev.offsetY + rotatedDy,
-                    lastX: e.clientX,
-                    lastY: e.clientY,
-                }));
-            },
-            onMouseUp: () => {
-                setState(prev => ({
-                    ...prev,
-                    isPanning: false,
-                }));
-            }
-        }
-    };
     const getRealCoordinates = useCallback((x: number, y: number) => {
         const canvas = canvasRef.current;
         const rect = canvas?.getBoundingClientRect();
@@ -280,54 +59,48 @@ export const Canvas: React.FC<CanvasProps> = ({ theme, canvasRef }) => {
         ctx.translate(-canvas.width / 2 + state.offsetX, -canvas.height / 2 + state.offsetY);
 
         DrawGrid(canvas, ctx, theme, state);
-        drawMeasurements(ctx, measurements);
+        drawMeasurements(ctx, state.measurements);
         state.tracks.forEach((piece, index) => piece.draw(ctx, index === state.selectedPiece));
 
         ctx.restore();
-    }, [theme, state, measurements, canvasRef]);
+    }, [theme, state, canvasRef]);
 
     const handleMouseDown = useCallback((e: React.MouseEvent) => {
         const currentTool = e.button === 1 ? toolHandlers["PANNING"] : toolHandlers[state.tool];
-        if(e.button === 1) setTool('PANNING')
+        if (e.button === 1) setTool('PANNING')
         const context: CanvasContext = {
             getRealCoordinates,
             setState,
-            state,
-            setMeasurements,
-            measurements
+            state
         };
         currentTool?.onMouseDown?.(e, context);
         setCursorPosition({ x: e.clientX, y: e.clientY });
-    }, [state, getRealCoordinates, setState, setMeasurements]);
+    }, [state, getRealCoordinates, setState]);
 
     const handleMouseMove = useCallback((e: React.MouseEvent) => {
         const currentTool = state.isPanning ? toolHandlers["PANNING"] : toolHandlers[state.tool];
         const context: CanvasContext = {
             getRealCoordinates,
             setState,
-            state,
-            setMeasurements,
-            measurements
+            state
         };
 
         currentTool?.onMouseMove?.(e, context);
         setCursorPosition({ x: e.clientX, y: e.clientY });
-    }, [state, getRealCoordinates, setState, setMeasurements]);
+    }, [state, getRealCoordinates, setState]);
 
     const handleMouseUp = useCallback((e: React.MouseEvent) => {
         const currentTool = e.button === 1 ? toolHandlers["PANNING"] : toolHandlers[state.tool];
-        if(e.button === 1) setTool('MOVE')
+        if (e.button === 1) setTool('MOVE')
         const context: CanvasContext = {
             getRealCoordinates,
             setState,
-            state,
-            setMeasurements,
-            measurements
+            state
         };
 
         currentTool?.onMouseUp?.(e, context);
         setCursorPosition(null);
-    }, [state, getRealCoordinates, setState, setMeasurements]);
+    }, [state, getRealCoordinates, setState]);
 
 
     const handleWheel = (e: React.WheelEvent) => {
@@ -431,7 +204,6 @@ export const Canvas: React.FC<CanvasProps> = ({ theme, canvasRef }) => {
         if (state.selectedPiece && state.selectedPiece !== -1) {
             return "grabbing"
         }
-        return canGrab ? "grab" : "pointer"
     }
     return (
         <>
@@ -456,7 +228,6 @@ export const Canvas: React.FC<CanvasProps> = ({ theme, canvasRef }) => {
                     touchAction: 'none'  // Add this line
                 }}
             />
-            {/* <div className='absolute right-10'><pre>{JSON.stringify({...state, tracks:[]},null, 2)}</pre></div> */}
             {cursorPosition && CurrentToolIcon && (
                 <div
                     style={{

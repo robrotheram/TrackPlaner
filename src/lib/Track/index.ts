@@ -1,4 +1,4 @@
-import { Point } from "./base";
+import { Point } from "@/types"
 
 export { TrackPieceBase } from "./base"
 export { TrackStraightPiece } from "./straight"

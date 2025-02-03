@@ -1,5 +1,6 @@
+import { Point } from "@/types";
 import { TrackPack } from ".";
-import { railWidth, Point, tieSpacing, tieThikness, tieWidth } from "./base";
+import { railWidth, tieSpacing, tieThikness, tieWidth } from "./base";
 import { TrackCurvedPiece } from "./curve";
 import { ToRadians } from "./utils";
 
@@ -126,11 +127,6 @@ export abstract class TrackPointPiece extends TrackCurvedPiece {
 
 
         ctx.restore();
-    }
-
-    setLocation(x: number, y: number): void {
-        this.x = x;
-        this.y = y;
     }
 
     getCenter(x1 = this.x, y1 = this.y): Point {

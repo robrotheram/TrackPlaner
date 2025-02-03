@@ -1,6 +1,5 @@
 import { TrackPieceBase } from '@/lib/Track';
-import { Point } from '@/lib/Track/base';
-import { CanvasState, Tool } from '@/types';
+import {Point, CanvasState, Tool } from '@/types';
 import React, { createContext, useContext, ReactNode, useEffect, useState } from 'react';
 
 
@@ -19,6 +18,7 @@ const initialState: CanvasState = {
     pinchAngle: 0,
     tool: 'MOVE',
     tracks: [],
+    measurements: [],
 }
 
 export const ModlerContext = createContext<{
@@ -93,13 +93,19 @@ export const ModlerProvider = ({ children, initialTracks = [] }: { children: Rea
         if (event.key === 'e') {
             setState(prev => ({
                 ...prev,
-                tool: "MOVE"
+                tool: "ERASER"
             }));
         }
         if (event.key === 'm') {
             setState(prev => ({
                 ...prev,
                 tool: "MEASURE"
+            }));
+        }
+        if (event.key === 'r') {
+            setState(prev => ({
+                ...prev,
+                tool: "ROTATE"
             }));
         }
     };

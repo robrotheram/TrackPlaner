@@ -1,5 +1,6 @@
+import { Point } from "@/types";
 import { TrackPack } from ".";
-import { Point, railWidth, tieSpacing, tieThikness, tieWidth, TrackPieceBase } from "./base";
+import { railWidth, tieSpacing, tieThikness, tieWidth, TrackPieceBase } from "./base";
 import { ToRadians } from "./utils";
 
 export class TrackStraightPiece extends TrackPieceBase {
