@@ -30,6 +30,10 @@ export class TrackStraightPiece extends TrackPieceBase {
         return { center, start, end };
     }
 
+    setLocation(x: number, y: number): void {
+        this.x = x;
+        this.y = y;
+    }
   
     draw(ctx: CanvasRenderingContext2D, isSelected?: boolean) {
         const {center, start, end} = this.getMarkerPoints()

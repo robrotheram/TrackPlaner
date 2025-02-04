@@ -59,6 +59,7 @@ export class TrackCurvedPiece extends TrackPieceBase {
         ctx.beginPath();
         ctx.strokeStyle = isSelected ? 'red' : '#9B9B97';
         ctx.lineWidth = 2;
+        ctx.lineCap = "round";
         ctx.arc(origin.x, origin.y, this.radius - railWidth, startAngle, endAngle);
         ctx.stroke();
         ctx.beginPath();

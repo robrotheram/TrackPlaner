@@ -117,7 +117,7 @@ export const findNearestEndpoint = (
         if (track === currentPiece) return;
 
         const markers = track.getMarkerPoints();
-        const endpoints = [markers.start, markers.end];
+        const endpoints = [markers.start, markers.end, markers.endArc].filter(point => point != null);
 
         endpoints.forEach(point => {
             const dx = point.x - currentPoint.x;

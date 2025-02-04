@@ -78,12 +78,13 @@ export const MoveHandler = {
                         ...prev,
                         tracks: updatedPieces,
                     }));
-                } else {
-                    const selectTrack = state.tracks.findIndex((piece: any) =>
-                        piece.isSelectable(x, y, 20 / state.scale)
-                    );
-                    // setCanGrab(selectTrack !== -1);
                 }
+                //  else {
+                //     const selectTrack = state.tracks.findIndex((piece: any) =>
+                //         piece.isSelectable(x, y, 20 / state.scale)
+                //     );
+                //     // setCanGrab(selectTrack !== -1);
+                // }
             },
             onMouseUp: (_: React.MouseEvent, {setState}: CanvasContext) => {
                 setState(prev => ({

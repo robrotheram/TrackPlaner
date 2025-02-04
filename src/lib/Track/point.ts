@@ -43,11 +43,16 @@ export abstract class TrackPointPiece extends TrackCurvedPiece {
             y: start.y + (this.radius * directionMultiplier) * Math.sin(ToRadians(this.rotation + 90)),
         };
 
-        return { center, start, end, arcOrigin };
+        const endAngle = ToRadians(this.endAngle) + ToRadians(this.rotation - (directionMultiplier === 1 ? 90 : -45));
+        const endArc = {
+            x: arcOrigin.x + Math.cos(endAngle) * this.radius,
+            y: arcOrigin.y + Math.sin(endAngle) * this.radius,
+        };
+        return { center, start, end, arcOrigin, endArc };
     }
 
     draw(ctx: CanvasRenderingContext2D, isSelected?: boolean) {
-        const { center, start, end, arcOrigin } = this.getMarkerPoints();
+        const { center, start, end, arcOrigin, endArc } = this.getMarkerPoints();
         const directionMultiplier = this.getDirectionMultiplier();
 
         // Calculate the start and end angles correctly depending on the handedness
@@ -65,7 +70,7 @@ export abstract class TrackPointPiece extends TrackCurvedPiece {
         }
 
         ctx.save();
-        this.markers(ctx, center, start, end);
+        this.markers(ctx, center, start, end, endArc);
 
         // Draw ties
         ctx.save();
