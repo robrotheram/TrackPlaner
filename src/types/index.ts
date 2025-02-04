@@ -32,24 +32,25 @@ export interface TouchState {
 
 
 export interface CanvasState {
-    scale: number;
-    rotation: number;
-    offsetX: number;
-    offsetY: number;
-    isDragging: boolean;
-    isPanning: boolean;
-    isToolActive: boolean;
+    scale: number
+    rotation: number
+    offsetX: number
+    offsetY: number
+    isDragging: boolean
+    isPanning: boolean
+    isToolActive: boolean
 
-    lastX: number;
-    lastY: number;
+    lastX: number
+    lastY: number
     tool: Tool
 
-    pinchDistance: number;
-    pinchAngle: number;
-
-    tracks: TrackPieceBase[]
-    measurements: Measurement[],
+    pinchDistance: number
+    pinchAngle: number
     selectedPiece?: number
+    
+    layoutName: string
+    tracks: TrackPieceBase[]
+    measurements: Measurement[]
 }
 
 export interface Theme {

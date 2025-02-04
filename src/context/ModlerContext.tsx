@@ -19,6 +19,7 @@ const initialState: CanvasState = {
     tool: 'MOVE',
     tracks: [],
     measurements: [],
+    layoutName: "My Railway Layout"
 }
 
 export const ModlerContext = createContext<{

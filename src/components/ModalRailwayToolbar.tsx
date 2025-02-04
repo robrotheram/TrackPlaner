@@ -14,15 +14,17 @@ import { useModlerContext } from '@/context/ModlerContext'
 import { HornbyTrackPack } from '@/lib/trackPacks/hornby'
 import { Canvas } from './BaseGrid'
 import { themes } from '@/lib/Themes'
-import { TrackPack, TrackPieceBase } from '@/lib/Track'
+import { TrackPieceBase } from '@/lib/Track'
 import { CreateTrackPiece } from '@/lib/Track/utils'
+import { loadState, saveState } from '@/lib/fileHandler'
 
 
 export function ModelRailwayToolbar() {
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const [layoutName, setLayoutName] = useState("My Railway Layout")
-    const { state, setState, setTool, setRotation, setScale } = useModlerContext();
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    
+    const { state, setState, setTool, setRotation, setScale } = useModlerContext();
+    
 
     const [themeIndex, setThemeIndex] = useState(0);
 
@@ -39,41 +41,13 @@ export function ModelRailwayToolbar() {
 
     const handleSave = async() => {
         try {
-            // Convert the store object to a JSON string
-            const data: TrackPack[] = state.tracks.map(track => track.serialise())
-            const jsonData = JSON.stringify(data);
-            const blob = new Blob([jsonData], { type: 'application/octet-stream' });
-
-            if ('showSaveFilePicker' in window) {
-                // @ts-ignore: Types for showSaveFilePicker might not be available.
-                const fileHandle = await(window as any).showSaveFilePicker({
-                    suggestedName: 'layout.bin',
-                    types: [
-                        {
-                            description: 'Binary Files',
-                            accept: { 'application/octet-stream': ['.bin'] },
-                        },
-                    ],
-                });
-                const writableStream = await fileHandle.createWritable();
-                await writableStream.write(blob);
-                await writableStream.close();
-            } else {
-                // Fallback: Use traditional download via an anchor element.
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'layout.bin';
-                a.click();
-                window.URL.revokeObjectURL(url);
-            }
+            await saveState(state)
         } catch (error) {
             console.error("Error during save:", error);
         }
     }
 
     const handleLoadClick = () => {
-        console.log("HELLO")
         fileInputRef.current?.click();
     };
 
@@ -86,13 +60,7 @@ export function ModelRailwayToolbar() {
             const result = event.target?.result;
             if (typeof result === 'string') {
                 try {
-                    const loadedData: TrackPack[] = JSON.parse(result);
-                    const tracks: TrackPieceBase[] = loadedData.map(track => CreateTrackPiece(track))
-                    console.log(loadedData)
-                    setState(prev => ({
-                        ...prev,
-                        tracks
-                    }));
+                    loadState(setState, result)
                 } catch (error) {
                     console.error('Error parsing the loaded file:', error);
                 }
@@ -112,8 +80,8 @@ export function ModelRailwayToolbar() {
                                 <RailSymbol className="size-8 p-1" />
                             </div>
                             <Input
-                                value={layoutName}
-                                onChange={(e) => setLayoutName(e.target.value)}
+                                value={state.layoutName}
+                                onChange={(e) => setState(prev =>({...prev, layoutName:e.target.value}))}
                                 className="font-semibold text-lg w-full"
                             />
                         </div>
@@ -173,7 +141,7 @@ export function ModelRailwayToolbar() {
                             </DropdownMenu>
                             <ShoppingListSheet />
                             <ThemeSelector setThemeIndex={setThemeIndex} />
-                            <input ref={fileInputRef} type="file" onChange={(e) => handleLoad(e)} accept=".bin" style={{ display: "none" }}></input>
+                            <input ref={fileInputRef} type="file" onChange={(e) => handleLoad(e)} accept=".layout" style={{ display: "none" }}></input>
                         </div>
                     </div>
                 </nav>
