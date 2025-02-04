@@ -1,5 +1,5 @@
 import { Measurement, Point } from "@/types";
-import { TrackPieceBase } from "../Track";
+import { TrackPieceBase } from "../track";
 
 
 const drawPerpendicularMarkers = (

@@ -1,5 +1,5 @@
-import { findNearestEndpoint } from "@/lib/Canvas/measure";
-import { TrackCurvedPiece } from "@/lib/Track";
+import { findNearestEndpoint } from "@/lib/canvas/measure";
+import { TrackCurvedPiece } from "@/lib/track";
 import { CanvasContext, Endpoint } from "@/types";
 
 export const MoveHandler = {

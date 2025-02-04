@@ -1,4 +1,4 @@
-import { TrackPieceBase } from '@/lib/Track';
+import { TrackPieceBase } from '@/lib/track';
 import {Point, CanvasState, Tool } from '@/types';
 import React, { createContext, useContext, ReactNode, useEffect, useState } from 'react';
 

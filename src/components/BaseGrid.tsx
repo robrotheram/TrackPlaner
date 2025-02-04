@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useModlerContext } from '@/context/ModlerContext';
-import { DrawGrid, getPinchAngle, getPinchDistance } from '@/lib/Canvas/grid';
-import { drawMeasurements } from '@/lib/Canvas/measure';
+import { DrawGrid, getPinchAngle, getPinchDistance } from '@/lib/canvas/grid';
+import { drawMeasurements } from '@/lib/canvas/measure';
 import { CanvasContext, Point, Theme } from '@/types';
 import { toolHandlers } from '@/lib/tools';
 

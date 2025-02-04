@@ -13,9 +13,9 @@ import { ShoppingCart, ZoomOut, Save, FileInput, Ruler, Eraser, RotateCcw, Camer
 import { useModlerContext } from '@/context/ModlerContext'
 import { HornbyTrackPack } from '@/lib/trackPacks/hornby'
 import { Canvas } from './BaseGrid'
-import { themes } from '@/lib/Themes'
-import { TrackPieceBase } from '@/lib/Track'
-import { CreateTrackPiece } from '@/lib/Track/utils'
+import { themes } from '@/lib/themes'
+import { TrackPieceBase } from '@/lib/track'
+import { CreateTrackPiece } from '@/lib/track/utils'
 import { loadState, saveState } from '@/lib/fileHandler'
 
 

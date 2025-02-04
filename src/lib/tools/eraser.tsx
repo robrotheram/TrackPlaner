@@ -1,7 +1,7 @@
 
 import { CanvasContext, Measurement, ToolHandler } from '@/types';
 import { Eraser} from 'lucide-react';
-import { isPointNearLine } from '../Canvas/measure';
+import { isPointNearLine } from '../canvas/measure';
 
 export const EraserHandler:ToolHandler = {
     icon: ({ size, color, fill }) => <Eraser size={size} color={color} fill={fill} />,

@@ -1,8 +1,8 @@
 import React from 'react'
 import { ModlerProvider } from './context/ModlerContext'
-import { TrackCurvedPiece, TrackStraightPiece } from './lib/Track'
+import { TrackCurvedPiece, TrackStraightPiece } from './lib/track'
 import { ModelRailwayToolbar } from './components/ModalRailwayToolbar'
-import { LeftHandedTrackPointPiece, RightHandedTrackPointPiece } from './lib/Track/point'
+import { LeftHandedTrackPointPiece, RightHandedTrackPointPiece } from './lib/track/point'
 
 export const Logo = () => {
   return <div className='flex-col justify-center items-center sm:flex hidden'>

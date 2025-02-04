@@ -1,4 +1,4 @@
-import { TrackPack } from "@/lib/Track";
+import { TrackPack } from "@/lib/track";
 
 
 export const HornbyTrackPack: TrackPack[] = [

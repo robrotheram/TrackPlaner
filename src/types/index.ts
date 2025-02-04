@@ -1,4 +1,4 @@
-import { TrackPieceBase } from "@/lib/Track";
+import { TrackPieceBase } from "@/lib/track";
 
 export type Point = { x: number; y: number };
 

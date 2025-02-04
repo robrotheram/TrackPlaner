@@ -1,7 +1,7 @@
 /**
  * @jest-environment jsdom
  */
-import { TrackStraightPiece, TrackCurvedPiece } from '../../lib/Track';
+import { TrackStraightPiece, TrackCurvedPiece } from '../../lib/track';
 
 describe('TrackStraightPiece', () => {
     const piece = new TrackStraightPiece("S 100", 50, 50, 0, 100);
