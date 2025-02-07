@@ -1,8 +1,6 @@
 import React from 'react'
 import { ModlerProvider } from './context/ModlerContext'
-import { TrackCurvedPiece, TrackStraightPiece } from './lib/track'
 import { ModelRailwayToolbar } from './components/ModalRailwayToolbar'
-import { LeftHandedTrackPointPiece, RightHandedTrackPointPiece } from './lib/track/point'
 
 export const Logo = () => {
   return <div className='flex-col justify-center items-center sm:flex hidden'>
@@ -30,145 +28,9 @@ export const LogoSVG: React.FC = () => {
   </svg>
 }
 
-const tracks = [
-
-  {
-    "x": 500,
-    "y": 500,
-    "type": "curve",
-    "rotation": 0,
-    "code": "R 603",
-    "startAngle": 180,
-    "endAngle": 225,
-    "radius": 335
-  },
-  {
-    "x": 500,
-    "y": 500,
-    "type": "curve",
-    "rotation": 0,
-    "code": "R 603",
-    "startAngle": 225,
-    "endAngle": 270,
-    "radius": 335
-  },
-  {
-    "x": 500,
-    "y": 500,
-    "type": "curve",
-    "rotation": 0,
-    "code": "R 604",
-    "startAngle": 90,
-    "endAngle": 135,
-    "radius": 335
-  },
-  {
-    "x": 500,
-    "y": 500,
-    "type": "curve",
-    "rotation": 0,
-    "code": "R 605",
-    "startAngle": 135,
-    "endAngle": 180,
-    "radius": 335
-  },
-  {
-    "x": 500,
-    "y": 165,
-    "type": "straight",
-    "rotation": 0,
-    "code": "R 601",
-    "length": 168
-  },
-  {
-    "x": 700,
-    "y": 165,
-    "type": "straight",
-    "rotation": 0,
-    "code": "R 602",
-    "length": 168
-  },
-
-
-
-  {
-    "x": 900,
-    "y": 500,
-    "rotation": 0,
-    "type": "curve",
-    "code": "R 603",
-    "startAngle": 325,
-    "endAngle": 360,
-    "radius": 335
-  },
-  {
-    "x": 900,
-    "y": 500,
-    "rotation": 0,
-    "type": "curve",
-    "code": "R 603",
-    "startAngle": 270,
-    "endAngle": 325,
-    "radius": 335
-  },
-  {
-    "x": 900,
-    "y": 500,
-    "rotation": 0,
-    "type": "curve",
-    "code": "R 604",
-    "startAngle": 0,
-    "endAngle": 45,
-    "radius": 335
-  },
-  {
-    "x": 900,
-    "y": 500,
-    "rotation": 0,
-    "type": "curve",
-    "code": "R 605",
-    "startAngle": 45,
-    "endAngle": 90,
-    "radius": 335
-  },
-  {
-    "x": 500,
-    "y": 835,
-    "type": "lhpoint",
-    "rotation": 0,
-    "code": "R 601",
-    "length": 168
-  },
-  {
-    "x": 700,
-    "y": 835,
-    "type": "rhpoint",
-    "rotation": 0,
-    "code": "R 602",
-    "length": 168
-  },
-]
-
-// const trackPieces = [
-//   // new TrackStraightPiece("", 100, 100, 90, 168),
-//   // new TrackStraightPiece("", 167, 268, 90, 168),
-//   new LeftHandedTrackPointPiece("", 500, 500, 0, 168),
-//   new RightHandedTrackPointPiece("", 500, 600, 0, 168),
-//   //  new TrackPointPiece("", 500, 500, 180, 0, 22.5, 438)
-// ]
-
-const trackPieces = tracks.map((track) => {
-  switch(track.type){
-    case "straight": return new TrackStraightPiece(track.code, track.x, track.y, track.rotation, track.length!)
-    case "curve": return new TrackCurvedPiece(track.code, track.x, track.y, track.rotation, track.startAngle!, track.endAngle!, track.radius!)
-    case "lhpoint": return new LeftHandedTrackPointPiece(track.code, track.x, track.y, track.rotation, track.length!)
-    case "rhpoint": return new RightHandedTrackPointPiece(track.code, track.x, track.y, track.rotation, track.length!)
-  }
-}).filter(t => t!==undefined) 
-
 function App() {
   return (
-    <ModlerProvider initialTracks={trackPieces}>
+    <ModlerProvider>
       <ModelRailwayToolbar />
     </ModlerProvider>
   )

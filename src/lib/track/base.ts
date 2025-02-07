@@ -57,17 +57,18 @@ export abstract class TrackPieceBase {
         console.log(this.rotation)
     }
 
-    private drawMarker(ctx: CanvasRenderingContext2D, point: Point, color: string) {
-        ctx.beginPath();
-        ctx.arc(point.x, point.y, 5, 0, 2 * Math.PI);
-        ctx.fillStyle = color;
-        ctx.fill();
-    }
+    
 
     markers(ctx: CanvasRenderingContext2D, ...points:Point[]) {
+        const drawMarker = (ctx: CanvasRenderingContext2D, point: Point, color: string) =>{
+            ctx.beginPath();
+            ctx.arc(point.x, point.y, 5, 0, 2 * Math.PI);
+            ctx.fillStyle = color;
+            ctx.fill();
+        }
         const colors = ["red", "blue", "green", "yellow", "purple"];
         points.forEach((p,index) => {
-            this.drawMarker(ctx, p,  colors[index % colors.length]);
+            drawMarker(ctx, p,  colors[index % colors.length]);
         })
     }
 

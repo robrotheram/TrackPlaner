@@ -49,20 +49,24 @@ export const Canvas: React.FC<CanvasProps> = ({ theme, canvasRef }) => {
         const dpr = window.devicePixelRatio || 1;
         canvas.width = canvas.clientWidth * dpr;
         canvas.height = canvas.clientHeight * dpr;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        DrawGrid(canvas, ctx, theme, state);
+
         ctx.scale(dpr, dpr);
 
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+       
         ctx.save();
         ctx.translate(canvas.width / 2, canvas.height / 2);
         ctx.rotate(state.rotation);
         ctx.scale(state.scale, state.scale);
         ctx.translate(-canvas.width / 2 + state.offsetX, -canvas.height / 2 + state.offsetY);
 
-        DrawGrid(canvas, ctx, theme, state);
         drawMeasurements(ctx, state.measurements);
         state.tracks.forEach((piece, index) => piece.draw(ctx, index === state.selectedPiece));
-
         ctx.restore();
+
+        
+        
     }, [theme, state, canvasRef]);
 
     const handleMouseDown = useCallback((e: React.MouseEvent) => {

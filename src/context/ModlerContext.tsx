@@ -1,8 +1,9 @@
+import { serializedState, toCanvasState } from '@/lib/fileHandler';
 import { TrackPieceBase } from '@/lib/track';
 import {Point, CanvasState, Tool } from '@/types';
 import React, { createContext, useContext, ReactNode, useEffect, useState } from 'react';
 
-
+const storageKey = "modlerState";
 
 const initialState: CanvasState = {
     scale: 1,
@@ -40,9 +41,21 @@ export const ModlerContext = createContext<{
     addTrack: ()=> { }, // Initialize setScale
 });
 
+const loadFromStorage = ():CanvasState => {
+    const saved = localStorage.getItem(storageKey);
+    if (saved) {
+        return toCanvasState(JSON.parse(saved), initialState);
+    }
+    return initialState;
+}   
 
-export const ModlerProvider = ({ children, initialTracks = [] }: { children: ReactNode; initialTracks?: TrackPieceBase[] }) => {
-    const [state, setState] = useState<CanvasState>({...initialState, tracks:initialTracks});
+
+export const ModlerProvider = ({ children }: { children: ReactNode}) => {
+    const [state, setState] = useState<CanvasState>(loadFromStorage());
+
+    useEffect(() => {
+        localStorage.setItem(storageKey, JSON.stringify(serializedState(state)));        
+    }, [state]);    
     
     const setScale = (scale: number) => {
         setState(prev => ({

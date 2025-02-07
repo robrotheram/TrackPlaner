@@ -9,14 +9,16 @@ export const DrawGrid = (
     const minorGridSize = 10;
     const majorGridSize = 100;
     ctx.save();
-    let left = -(canvas.width + Math.abs(state.offsetX)) / state.scale
-    let top = -(canvas.height + Math.abs(state.offsetY)) / state.scale
-    let right = (canvas.width + Math.abs(state.offsetX)) / (state.scale < 1 ? state.scale : 1)
-    let bottom = (canvas.height + Math.abs(state.offsetY)) / (state.scale < 1 ? state.scale : 1)
 
+    let left = -(canvas.width - (state.lastX)) / state.scale
+    let top = -(canvas.height +(state.lastY)) / state.scale
+    let right = (canvas.width + (state.lastX)) / (state.scale < 1 ? state.scale : 1)
+    let bottom = (canvas.height + (state.lastY)) / (state.scale < 1 ? state.scale : 1)
+    
     ctx.strokeStyle = theme.gridColor;
-    if (state.scale > 0.5) {
-        ctx.lineWidth = 0.5 / state.scale;
+    
+    if (state.scale > 0.2) {
+        ctx.lineWidth = 0.5 ;
         ctx.globalAlpha = theme.gridOpacity * 0.5;
 
         ctx.beginPath();
@@ -29,9 +31,10 @@ export const DrawGrid = (
             ctx.lineTo(right, y);
         }
     }
+
     ctx.stroke();
     ctx.beginPath();
-    ctx.lineWidth = 1 / state.scale;
+    ctx.lineWidth = 1;
     ctx.globalAlpha = theme.gridOpacity;
 
     for (let x = left; x < right; x += majorGridSize) {
@@ -44,9 +47,7 @@ export const DrawGrid = (
         ctx.lineTo(right, y);
     }
     ctx.stroke();
-    // // Restore the original transformation state
     ctx.restore();
-    // Reset global alpha for other drawings
     ctx.globalAlpha = 1;
 };
 

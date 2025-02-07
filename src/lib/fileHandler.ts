@@ -19,16 +19,37 @@ type SerializedLayout = {
     name: string,
     tracks: TrackPack[]
     measurements: Measurement[]
+    scale?: number   
+    offsetX?: number 
+    offsetY?: number 
 }
 
-export const saveState = async (state: CanvasState) => {
-    const data: SerializedLayout = {
+
+export const serializedState = (state: CanvasState): SerializedLayout => {
+    return {
         name: state.layoutName,
         tracks: state.tracks.map(track => track.serialise()),
-        measurements: state.measurements
+        measurements: state.measurements,
+        scale: state.scale,
+        offsetX: state.offsetX, 
+        offsetY: state.offsetY  
     }
+}
 
-    const blob = new Blob([JSON.stringify(data)], { type: 'application/octet-stream' });
+export const toCanvasState = (serialized: SerializedLayout, state:CanvasState): CanvasState => {
+    return {
+        ...state,
+        layoutName: serialized.name,
+        tracks: serialized.tracks.map(track => CreateTrackPiece(track)),
+        measurements: serialized.measurements,
+        scale: serialized.scale ?? 1,
+        offsetX: serialized.offsetX ?? 0,
+        offsetY: serialized.offsetY ?? 0,
+    }
+}   
+
+export const saveState = async (state: CanvasState) => {
+    const blob = new Blob([JSON.stringify(serializedState(state))], { type: 'application/octet-stream' });
     const fileHandle = await (window as any).showSaveFilePicker({
         suggestedName: `${serializeToFilename(state.layoutName)}.layout`,
         types: [
@@ -45,11 +66,5 @@ export const saveState = async (state: CanvasState) => {
 
 
 export const loadState = (setState: React.Dispatch<React.SetStateAction<CanvasState>>, str: string) => {
-    const loadedData: SerializedLayout = JSON.parse(str);
-    setState(prev => ({
-        ...prev,
-        tracks: loadedData.tracks.map(track => CreateTrackPiece(track)),
-        measurements: loadedData.measurements,
-        layoutName: loadedData.name
-    }));
+        setState(prev => toCanvasState(JSON.parse(str), prev));  
 }

@@ -48,6 +48,6 @@ export const CreateTrackPiece = (trackPack: TrackPack): TrackPieceBase => {
                 trackPack.length ?? 0
             );
         default:
-            throw new Error("Invalid track type");
+            throw new Error(`Invalid track type ${trackPack.type}`);
     }
 }

@@ -9,7 +9,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { ShoppingCart, ZoomOut, Save, FileInput, Ruler, Eraser, RotateCcw, Camera, RailSymbol, LucideTrainTrack, LayoutDashboard, Settings, RotateCw, Move, MousePointerClick, DraftingCompass, ZoomInIcon } from 'lucide-react'
+import { ShoppingCart, ZoomOut, Save, FileInput, Ruler, Eraser, RotateCcw, Camera, RailSymbol, LucideTrainTrack, LayoutDashboard, Settings, RotateCw, Move, MousePointerClick, DraftingCompass, ZoomInIcon, Sun, Moon } from 'lucide-react'
 import { useModlerContext } from '@/context/ModlerContext'
 import { HornbyTrackPack } from '@/lib/trackPacks/hornby'
 import { Canvas } from './BaseGrid'
@@ -17,14 +17,17 @@ import { themes } from '@/lib/themes'
 import { TrackPieceBase } from '@/lib/track'
 import { CreateTrackPiece } from '@/lib/track/utils'
 import { loadState, saveState } from '@/lib/fileHandler'
+import { DropdownMenuSeparator } from '@radix-ui/react-dropdown-menu'
+import { Switch } from './ui/switch'
+import { useTheme } from '@/context/ThemeContext'
 
 
 export function ModelRailwayToolbar() {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
-    
+
     const { state, setState, setTool, setRotation, setScale } = useModlerContext();
-    
+
 
     const [themeIndex, setThemeIndex] = useState(0);
 
@@ -39,7 +42,7 @@ export function ModelRailwayToolbar() {
         }
     };
 
-    const handleSave = async() => {
+    const handleSave = async () => {
         try {
             await saveState(state)
         } catch (error) {
@@ -73,25 +76,24 @@ export function ModelRailwayToolbar() {
     return (
         <TooltipProvider>
             <div className="flex flex-col h-screen bg-background">
-                <nav className="bg-card text-card-foreground p-2 shadow-lg">
-                    <div className="flex flex-col gap-3  md:flex-row items-center justify-between">
+                <nav className="bg-card text-card-foreground px-2 shadow-lg">
+                    <div className="flex flex-col gap-3 p-2 lg:flex-row items-center justify-between">
                         <div className="flex w-full items-center space-x-2">
-                            <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                                <RailSymbol className="size-8 p-1" />
+                            <div className="logo flex aspect-square size-12 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+                                <RailSymbol />
                             </div>
                             <Input
                                 value={state.layoutName}
-                                onChange={(e) => setState(prev =>({...prev, layoutName:e.target.value}))}
-                                className="font-semibold text-lg w-full"
-                            />
+                                onChange={(e) => setState(prev => ({ ...prev, layoutName: e.target.value }))}
+                                className="text-lg p-6 h-8 w-full" />
                         </div>
 
 
-                        <div className="flex items-center space-x-2 w-full justify-evenly md:justify-end">
+                        <div className="flex items-center space-x-2 w-full justify-between lg:justify-end">
                             <AddTrackButton />
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                    <Button variant="outline"><DraftingCompass /><span className='hidden sm:block'>Tools</span></Button>
+                                    <Button variant="outline" className='p-6 text-md'><DraftingCompass /><span className='hidden sm:block'>Tools</span></Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent>
 
@@ -121,7 +123,7 @@ export function ModelRailwayToolbar() {
 
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                    <Button variant="outline"><LayoutDashboard className='h-8 w-8' /><span className='hidden sm:block'>Layout</span> </Button>
+                                    <Button variant="outline" className='p-6 text-md'><LayoutDashboard /><span className='hidden sm:block'>Layout</span> </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent>
                                     <DropdownMenuItem onSelect={handleSave}>
@@ -146,8 +148,8 @@ export function ModelRailwayToolbar() {
                     </div>
                 </nav>
                 <div className="flex flex-grow p-4 w-full">
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg w-full h-full flex items-center justify-center text-muted-foreground">
-                        <div className="absolute top-36 md:top-24 right-8 space-x-2">
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg w-full h-full flex items-center justify-between text-muted-foreground">
+                        <div className="absolute top-40 md:top-24 right-8 space-x-2">
                             <Button size="icon" className="rounded-full" title="Zoom In" onClick={() => setScale(0.1)}>
                                 <ZoomInIcon />
                             </Button>
@@ -176,7 +178,7 @@ const AddTrackButton = () => {
 
     return <DropdownMenu>
         <DropdownMenuTrigger asChild>
-            <Button variant="outline"><LucideTrainTrack /> <span className='hidden sm:block'>Add Track</span></Button>
+            <Button variant="outline" className='p-6 text-md'><LucideTrainTrack /> <span className='hidden sm:block'>Add Track</span></Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent>
             {HornbyTrackPack.map((track) =>
@@ -223,7 +225,7 @@ const ShoppingListSheet = () => {
 
     return <Sheet>
         <SheetTrigger asChild>
-            <Button variant="outline">
+            <Button variant="outline" className='p-6 text-md'>
                 <ShoppingCart className="h-4 w-4" /><span className='hidden sm:block'>Bill of Materials</span>
             </Button>
         </SheetTrigger>
@@ -232,7 +234,7 @@ const ShoppingListSheet = () => {
                 <SheetTitle>Bill of Materials</SheetTitle>
             </SheetHeader>
             <div className="py-4">
-                <table className="min-w-full bg-white">
+                <table className="min-w-full ">
                     <thead>
                         <tr>
                             <th className="py-2">Track</th>
@@ -261,11 +263,25 @@ type ThemeSelectorProps = {
 }
 
 const ThemeSelector = ({ setThemeIndex }: ThemeSelectorProps) => {
+    const { theme, setTheme } = useTheme()
+
     return <DropdownMenu>
         <DropdownMenuTrigger asChild>
-            <Button variant="outline"><Settings /> </Button>
+            <Button variant="outline" className='p-6 text-md'><Settings /> </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent>
+            <DropdownMenuItem asChild>
+                <div className='flex items-center space-x-2'>
+                    <Moon className="h-[1.2rem] w-[1.2rem]" />
+                    <Switch 
+                    checked={theme === "light"}
+                    onCheckedChange={(e) => {
+                        setTheme(e ? "light" : "dark")
+                    }} />
+                    <Sun className="h-[1.2rem] w-[1.2rem]" />
+                </div>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
             {themes.map((theme, index) =>
                 <DropdownMenuItem key={index} className='flex items-center' onClick={() => setThemeIndex(index)}>
                     {theme.name}
