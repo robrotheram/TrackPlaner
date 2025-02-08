@@ -10,10 +10,15 @@ export const DrawGrid = (
     const majorGridSize = 100;
     ctx.save();
 
-    let left = -(canvas.width - (state.lastX)) / state.scale
-    let top = -(canvas.height +(state.lastY)) / state.scale
-    let right = (canvas.width + (state.lastX)) / (state.scale < 1 ? state.scale : 1)
-    let bottom = (canvas.height + (state.lastY)) / (state.scale < 1 ? state.scale : 1)
+    ctx.translate(canvas.width / 2, canvas.height / 2);
+    ctx.scale(state.scale, state.scale);
+    ctx.rotate(state.rotation);
+    ctx.translate(-canvas.width / 2, -canvas.height / 2);   
+
+    let left = -(canvas.width - (state.offsetX)) / state.scale
+    let top = -(canvas.height +(state.offsetY)) / state.scale
+    let right = canvas.width+ (canvas.width + (state.offsetX)) / (state.scale)
+    let bottom = canvas.height + (canvas.height + (state.offsetY)) / (state.scale)
     
     ctx.strokeStyle = theme.gridColor;
     

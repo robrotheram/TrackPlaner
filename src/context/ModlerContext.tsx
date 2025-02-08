@@ -122,6 +122,18 @@ export const ModlerProvider = ({ children }: { children: ReactNode}) => {
                 tool: "ROTATE"
             }));
         }
+        if (event.key === 'd') {
+            setState(prev => ({
+                ...prev,
+                tool: "DUPLICATE"
+            }));
+        }
+        if (event.key === 'a') {
+            setState(prev => ({
+                ...prev,
+                tool: "ADD"
+            }));
+        }
     };
 
     useEffect(() => {

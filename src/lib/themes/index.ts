@@ -51,5 +51,15 @@ export const themes: Theme[] = [
       color: "black",
       fill: "white"
     }
-  }
+  },
+  {
+    name: 'Minimalist Darkboard',
+    background: '#171717',
+    gridColor: '#ffffff',
+    gridOpacity: 0.3,
+    icon: {
+      color: "white",
+      fill: "black"
+    }
+  },
 ];

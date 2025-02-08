@@ -1,4 +1,4 @@
-import { TrackPieceBase } from "@/lib/track";
+import { TrackPack, TrackPieceBase } from "@/lib/track";
 
 export type Point = { x: number; y: number };
 
@@ -6,9 +6,9 @@ export type Arc = { origin: Point; radius: number; startAngle: number; endAngle:
 
 
 
-export type Tool = "MEASURE" | "ERASER" | "MOVE" | "ROTATE" | "PANNING"
+export type Tool = "MEASURE" | "ERASER" | "MOVE" | "ROTATE" | "PANNING" | "DUPLICATE" | "ADD";
 
-type ToolIcon = (props: { size: number; color: string, fill: string }) => JSX.Element;
+type ToolIcon = (props: { size: number; color?: string, fill?: string }) => JSX.Element;
 
 export type ToolHandler = {
     icon?: ToolIcon;
@@ -42,7 +42,10 @@ export interface CanvasState {
 
     lastX: number
     lastY: number
+
     tool: Tool
+    addTrackPiece?: TrackPack
+
 
     pinchDistance: number
     pinchAngle: number

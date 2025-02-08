@@ -24,11 +24,10 @@ export const PanningHandler: ToolHandler = {
         const rotatedDx = dx * cos + dy * sin;
         const rotatedDy = -dx * sin + dy * cos;
 
-        // Update the state with the rotated deltas
         setState((prev) => ({
             ...prev,
-            offsetX: prev.offsetX + rotatedDx,
-            offsetY: prev.offsetY + rotatedDy,
+            offsetX:  Math.max(-1800, Math.min(1800, state.offsetX + rotatedDx)),
+            offsetY: Math.max(-900, Math.min(3000, state.offsetY + rotatedDy)),
             lastX: e.clientX,
             lastY: e.clientY,
         }));

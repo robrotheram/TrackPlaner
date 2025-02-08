@@ -224,7 +224,6 @@ export const Canvas: React.FC<CanvasProps> = ({ theme, canvasRef }) => {
                 onTouchEnd={handleTouchEnd}
                 onContextMenu={(e) => e.preventDefault()}
                 style={{
-                    display: 'block',
                     width: '100%',
                     height: '100%',
                     background: theme.background,

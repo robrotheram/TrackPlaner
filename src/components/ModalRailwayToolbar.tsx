@@ -1,4 +1,4 @@
-import { useState, useRef, ChangeEvent } from 'react'
+import { useState, useRef, ChangeEvent, useMemo } from 'react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
@@ -9,17 +9,17 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { ShoppingCart, ZoomOut, Save, FileInput, Ruler, Eraser, RotateCcw, Camera, RailSymbol, LucideTrainTrack, LayoutDashboard, Settings, RotateCw, Move, MousePointerClick, DraftingCompass, ZoomInIcon, Sun, Moon } from 'lucide-react'
+import { ShoppingCart, ZoomOut, Save, FileInput, Ruler, Eraser, RotateCcw, Camera, RailSymbol, LucideTrainTrack, LayoutDashboard, Settings, RotateCw, Move, MousePointerClick, DraftingCompass, ZoomInIcon, Sun, Moon, LayoutGrid, PencilRuler, Stamp } from 'lucide-react'
 import { useModlerContext } from '@/context/ModlerContext'
 import { HornbyTrackPack } from '@/lib/trackPacks/hornby'
 import { Canvas } from './BaseGrid'
 import { themes } from '@/lib/themes'
-import { TrackPieceBase } from '@/lib/track'
-import { CreateTrackPiece } from '@/lib/track/utils'
+import { TrackPack, TrackPieceBase } from '@/lib/track'
 import { loadState, saveState } from '@/lib/fileHandler'
 import { DropdownMenuSeparator } from '@radix-ui/react-dropdown-menu'
 import { Switch } from './ui/switch'
 import { useTheme } from '@/context/ThemeContext'
+import { toolHandlers } from '@/lib/tools'
 
 
 export function ModelRailwayToolbar() {
@@ -50,6 +50,10 @@ export function ModelRailwayToolbar() {
         }
     }
 
+    const handleNewLayout = () => {
+        setState(prev => ({ ...prev, layoutName: "New Layout", tracks: [], offsetX: 0, offsetY: 0, scale: 1, measurements: [] }))
+    }
+
     const handleLoadClick = () => {
         fileInputRef.current?.click();
     };
@@ -72,11 +76,15 @@ export function ModelRailwayToolbar() {
 
         reader.readAsText(file);
     };
-
+    const CurrentToolIcon = useMemo(() => {
+        const tool = toolHandlers[state.tool];
+        return tool ? tool.icon : null;
+    }, [state.tool]);
+    
     return (
         <TooltipProvider>
             <div className="flex flex-col h-screen bg-background">
-                <nav className="bg-card text-card-foreground px-2 shadow-lg">
+                <nav className="bg-card text-card-foreground p-2 shadow-lg">
                     <div className="flex flex-col gap-3 p-2 lg:flex-row items-center justify-between">
                         <div className="flex w-full items-center space-x-2">
                             <div className="logo flex aspect-square size-12 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
@@ -87,24 +95,33 @@ export function ModelRailwayToolbar() {
                                 onChange={(e) => setState(prev => ({ ...prev, layoutName: e.target.value }))}
                                 className="text-lg p-6 h-8 w-full" />
                         </div>
-
-
                         <div className="flex items-center space-x-2 w-full justify-between lg:justify-end">
-                            <AddTrackButton />
+                            {state.tool === "ADD" &&<AddTrackButton />}
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
+                                    {CurrentToolIcon? <Button variant="outline" className='p-6 text-md'><CurrentToolIcon size={24}/><span className='hidden sm:block capitalize'>{state.tool.toLowerCase()}</span></Button>:
                                     <Button variant="outline" className='p-6 text-md'><DraftingCompass /><span className='hidden sm:block'>Tools</span></Button>
+                                    }
+                                    
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent>
 
-                                    <DropdownMenuItem onClick={() => { setTool("MOVE") }}>
+
+                                <DropdownMenuContent>
+                                    <DropdownMenuItem onClick={() => { setTool("ADD") }}>
                                         <MousePointerClick className="h-4 w-4 mr-2" />
+                                        Add
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => { setTool("MOVE") }}>
+                                        <PencilRuler className="h-4 w-4 mr-2" />
                                         Edit
                                     </DropdownMenuItem>
-
+                                    <DropdownMenuItem onClick={() => { setTool("DUPLICATE") }}>
+                                        <Stamp className="h-4 w-4 mr-2" />
+                                        Clone
+                                    </DropdownMenuItem>
                                     <DropdownMenuItem onClick={() => { setTool("ROTATE") }}>
                                         <RotateCw className="h-4 w-4 mr-2" />
-                                        Rotate Piece
+                                        Rotate
                                     </DropdownMenuItem>
                                     <DropdownMenuItem onClick={() => { setTool("PANNING") }}>
                                         <Move className="h-4 w-4 mr-2" />
@@ -126,6 +143,10 @@ export function ModelRailwayToolbar() {
                                     <Button variant="outline" className='p-6 text-md'><LayoutDashboard /><span className='hidden sm:block'>Layout</span> </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent>
+                                    <DropdownMenuItem onSelect={handleNewLayout}>
+                                        <LayoutGrid className="h-4 w-4 mr-2" />
+                                        New Layout
+                                    </DropdownMenuItem>
                                     <DropdownMenuItem onSelect={handleSave}>
                                         <Save className="h-4 w-4 mr-2" />
                                         Save Layout
@@ -147,7 +168,7 @@ export function ModelRailwayToolbar() {
                         </div>
                     </div>
                 </nav>
-                <div className="flex flex-grow p-4 w-full">
+                <div className="flex flex-grow px-4 pb-4 w-full">
                     <div className="border-2 border-dashed border-gray-300 rounded-lg w-full h-full flex items-center justify-between text-muted-foreground">
                         <div className="absolute top-40 md:top-24 right-8 space-x-2">
                             <Button size="icon" className="rounded-full" title="Zoom In" onClick={() => setScale(0.1)}>
@@ -174,15 +195,21 @@ export function ModelRailwayToolbar() {
 
 const AddTrackButton = () => {
 
-    const { addTrack } = useModlerContext();
+    const { state, setState } = useModlerContext();
+
+    const handleSelect = (track: TrackPack) => {
+        setState(prev => ({ ...prev, addTrackPiece: track }));
+    }
 
     return <DropdownMenu>
         <DropdownMenuTrigger asChild>
-            <Button variant="outline" className='p-6 text-md'><LucideTrainTrack /> <span className='hidden sm:block'>Add Track</span></Button>
+            {state.addTrackPiece ? <Button variant="outline" className='p-6 text-md'><LucideTrainTrack />{state.addTrackPiece.code}</Button> :
+                <Button variant="outline" className='p-6 text-md'><LucideTrainTrack /> <span className='hidden sm:block'>Select Track</span></Button>
+            }
         </DropdownMenuTrigger>
         <DropdownMenuContent>
             {HornbyTrackPack.map((track) =>
-                <DropdownMenuItem key={track.code} className='flex items-center' onClick={() => addTrack(CreateTrackPiece(track))}>
+                <DropdownMenuItem key={track.code} className='flex items-center' onClick={() => handleSelect(track)}>
                     <img src={track.image} alt={track.name} className='h-24' />
                     <span>{track.code}</span>
                 </DropdownMenuItem>
@@ -273,11 +300,11 @@ const ThemeSelector = ({ setThemeIndex }: ThemeSelectorProps) => {
             <DropdownMenuItem asChild>
                 <div className='flex items-center space-x-2'>
                     <Moon className="h-[1.2rem] w-[1.2rem]" />
-                    <Switch 
-                    checked={theme === "light"}
-                    onCheckedChange={(e) => {
-                        setTheme(e ? "light" : "dark")
-                    }} />
+                    <Switch
+                        checked={theme === "light"}
+                        onCheckedChange={(e) => {
+                            setTheme(e ? "light" : "dark")
+                        }} />
                     <Sun className="h-[1.2rem] w-[1.2rem]" />
                 </div>
             </DropdownMenuItem>
