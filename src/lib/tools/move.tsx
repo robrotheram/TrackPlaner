@@ -1,14 +1,22 @@
 import { findNearestEndpoint } from "@/lib/canvas/measure";
 import { TrackCurvedPiece } from "@/lib/track";
 import { CanvasContext, Endpoint } from "@/types";
+import { typeFromPiece } from "../track/utils";
 
 export const MoveHandler = {
-            onMouseDown: (e: React.MouseEvent, {state, setState, getRealCoordinates}: CanvasContext) => {
+            onMouseDown: (e: React.MouseEvent, {state, dragOffset, setState, getRealCoordinates}: CanvasContext) => {
                 const coords = getRealCoordinates(e.clientX, e.clientY);
                 const selectTrack = state.tracks.findIndex((piece: any) =>
                     piece.isSelectable(coords.x, coords.y, 20 / state.scale)
                 );
 
+                if (selectTrack > 0) {
+                    dragOffset.current = {
+                        x: coords.x - state.tracks[selectTrack].x,
+                        y: coords.y - state.tracks[selectTrack].y,
+                      };    
+                };
+                
                 setState(prev => ({
                     ...prev,
                     isDragging: true,
@@ -17,7 +25,7 @@ export const MoveHandler = {
                     lastY: coords.y
                 }));
             },
-            onMouseMove: (e: React.MouseEvent, {state, setState, getRealCoordinates}: CanvasContext) => {
+            onMouseMove: (e: React.MouseEvent, {state, dragOffset, setState, getRealCoordinates}: CanvasContext) => {
                 const { x, y } = getRealCoordinates(e.clientX, e.clientY);
                 if (state.isDragging && state.selectedPiece !== undefined) {
                     const selectedTrack = state.tracks[state.selectedPiece];
@@ -65,10 +73,15 @@ export const MoveHandler = {
                         if (selectedTrack instanceof TrackCurvedPiece) {
                             // Special handling for curved tracks
                             selectedTrack.setLocation(nearestPoint.x, nearestPoint.y);
-                        } else {
+                        } else if (typeFromPiece(selectedTrack) === 'straight') {
+                                selectedTrack.setLocation(
+                                    selectedTrack.x + dx, //- dragOffset.current.x,
+                                    selectedTrack.y + dy //- dragOffset.current.y,
+                                );
+                        }else{
                             selectedTrack.setLocation(
-                                selectedTrack.x + dx,
-                                selectedTrack.y + dy
+                                selectedTrack.x + dx - dragOffset.current.x,
+                                selectedTrack.y + dy  - dragOffset.current.y,
                             );
                         }
                     }
@@ -90,7 +103,7 @@ export const MoveHandler = {
                 setState(prev => ({
                     ...prev,
                     isDragging: false,
-                    selectedPiece: undefined
+                    // selectedPiece: undefined
                 }));
             }
         }

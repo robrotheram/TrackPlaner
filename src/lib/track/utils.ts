@@ -1,4 +1,4 @@
-import { LeftHandedTrackPointPiece, RightHandedTrackPointPiece, TrackCurvedPiece, TrackPack, TrackPieceBase, TrackStraightPiece } from ".";
+import { LeftHandedTrackPointPiece, RightHandedTrackPointPiece, TrackCurvedPiece, TrackPack, TrackPieceBase, TrackStraightPiece, TrackType } from ".";
 
 
 export function ToRadians(degrees: number): number {
@@ -9,7 +9,19 @@ export function radiansToDegrees(radians: number): number {
     return radians * (180 / Math.PI);
 }
 
-
+export function typeFromPiece(trackPiece: TrackPieceBase): TrackType {
+    if (trackPiece instanceof TrackStraightPiece) {
+        return "straight";
+    } else if (trackPiece instanceof TrackCurvedPiece) {
+        return "curve";
+    } else if (trackPiece instanceof LeftHandedTrackPointPiece) {
+        return "lhpoint";
+    } else if (trackPiece instanceof RightHandedTrackPointPiece) {
+        return "rhpoint";
+    } else {
+        throw new Error(`Invalid track type ${trackPiece.code}`);
+    }
+}
 
 export const CreateTrackPiece = (trackPack: TrackPack): TrackPieceBase => {
     switch (trackPack.type) {

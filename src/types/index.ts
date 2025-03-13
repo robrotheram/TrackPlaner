@@ -21,6 +21,7 @@ export type CanvasContext = {
     getRealCoordinates: (x: number, y: number) => Point;
     setState: React.Dispatch<React.SetStateAction<CanvasState>>;
     state: CanvasState;
+    dragOffset: React.MutableRefObject<Point>
 };
 
 // Add to existing interfaces

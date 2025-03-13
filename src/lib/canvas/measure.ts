@@ -100,6 +100,13 @@ export const drawMeasurements = (ctx: CanvasRenderingContext2D, measurements: Me
             (start.x + end.x) / 2,
             (start.y + end.y) / 2
         );
+
+
+        ctx.fillText(
+            `${end.x}`,
+            (end.x),
+            (start.y + end.y) / 2
+        );
     });
 };
 

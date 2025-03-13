@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { useModlerContext } from '@/context/ModlerContext';
 import { DrawGrid, getPinchAngle, getPinchDistance } from '@/lib/canvas/grid';
 import { drawMeasurements } from '@/lib/canvas/measure';
@@ -13,6 +13,8 @@ interface CanvasProps {
 export const Canvas: React.FC<CanvasProps> = ({ theme, canvasRef }) => {
     const { state, setState, setTool } = useModlerContext();
     const [cursorPosition, setCursorPosition] = useState<Point | null>(null);
+    const dragOffsetRef = useRef({ x: 0, y: 0 }as Point);
+
 
     const getRealCoordinates = useCallback((x: number, y: number) => {
         const canvas = canvasRef.current;
@@ -49,17 +51,16 @@ export const Canvas: React.FC<CanvasProps> = ({ theme, canvasRef }) => {
         const dpr = window.devicePixelRatio || 1;
         canvas.width = canvas.clientWidth * dpr;
         canvas.height = canvas.clientHeight * dpr;
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        DrawGrid(canvas, ctx, theme, state);
-
+        // ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.scale(dpr, dpr);
 
-       
         ctx.save();
         ctx.translate(canvas.width / 2, canvas.height / 2);
         ctx.rotate(state.rotation);
         ctx.scale(state.scale, state.scale);
         ctx.translate(-canvas.width / 2 + state.offsetX, -canvas.height / 2 + state.offsetY);
+
+        DrawGrid(canvas, ctx, theme, state);
 
         drawMeasurements(ctx, state.measurements);
         state.tracks.forEach((piece, index) => piece.draw(ctx, index === state.selectedPiece));
@@ -75,6 +76,7 @@ export const Canvas: React.FC<CanvasProps> = ({ theme, canvasRef }) => {
         const context: CanvasContext = {
             getRealCoordinates,
             setState,
+            dragOffset: dragOffsetRef,
             state
         };
         currentTool?.onMouseDown?.(e, context);
@@ -86,6 +88,7 @@ export const Canvas: React.FC<CanvasProps> = ({ theme, canvasRef }) => {
         const context: CanvasContext = {
             getRealCoordinates,
             setState,
+            dragOffset: dragOffsetRef,
             state
         };
 
@@ -99,6 +102,7 @@ export const Canvas: React.FC<CanvasProps> = ({ theme, canvasRef }) => {
         const context: CanvasContext = {
             getRealCoordinates,
             setState,
+            dragOffset: dragOffsetRef,
             state
         };
 

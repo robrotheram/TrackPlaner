@@ -26,8 +26,8 @@ export const PanningHandler: ToolHandler = {
 
         setState((prev) => ({
             ...prev,
-            offsetX:  Math.max(-1800, Math.min(1800, state.offsetX + rotatedDx)),
-            offsetY: Math.max(-900, Math.min(3000, state.offsetY + rotatedDy)),
+            offsetX:  Math.max(-2000, Math.min(2000, state.offsetX + rotatedDx)),
+            offsetY: Math.max(-2000, Math.min(2000, state.offsetY + rotatedDy)),
             lastX: e.clientX,
             lastY: e.clientY,
         }));
