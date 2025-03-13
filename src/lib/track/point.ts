@@ -52,7 +52,7 @@ export abstract class TrackPointPiece extends TrackCurvedPiece {
     }
 
     draw(ctx: CanvasRenderingContext2D, isSelected?: boolean) {
-        const { center, start, end, arcOrigin, endArc } = this.getMarkerPoints();
+        const { center, start, end, arcOrigin} = this.getMarkerPoints();
         const directionMultiplier = this.getDirectionMultiplier();
 
         // Calculate the start and end angles correctly depending on the handedness
@@ -70,7 +70,7 @@ export abstract class TrackPointPiece extends TrackCurvedPiece {
         }
 
         ctx.save();
-        this.markers(ctx, center, start, end, endArc);
+        this.isDev && this.markers(ctx, center, start, end);  
 
         // Draw ties
         ctx.save();

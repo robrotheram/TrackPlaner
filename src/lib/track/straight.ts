@@ -49,7 +49,7 @@ export class TrackStraightPiece extends TrackPieceBase {
 
     draw(ctx: CanvasRenderingContext2D, isSelected?: boolean) {
         const { center, start, end } = this.getMarkerPoints();
-        this.markers(ctx, center, start, end);
+        this.isDev && this.markers(ctx, center, start, end);  
         ctx.save();
     
         for (let i = 0 + tieThikness * 2; i < this.length - tieThikness / 2; i += tieSpacing) {

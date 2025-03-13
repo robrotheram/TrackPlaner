@@ -31,7 +31,7 @@ export class TrackCurvedPiece extends TrackPieceBase {
 
     draw(ctx: CanvasRenderingContext2D, isSelected?: boolean) {
         const { center, start, end } = this.getMarkerPoints()
-        this.markers(ctx, center, start, end);
+        this.isDev && this.markers(ctx, center, start, end);  
 
         const { origin, startAngle, endAngle, } = this.getArc(0, 0);
 

@@ -1,31 +1,17 @@
-import { useState, useRef, ChangeEvent, useMemo } from 'react'
+import { useState, useRef, ChangeEvent } from 'react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
-    DropdownMenuPortal,
-    DropdownMenuSubContent,
-    DropdownMenuTrigger,
-    DropdownMenuGroup,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuSub,
-    DropdownMenuSubTrigger
-} from "@/components/ui/dropdown-menu"
-import { ShoppingCart, ZoomOut, Save, FileInput, Ruler, Eraser, RotateCcw, Camera, RailSymbol, LucideTrainTrack, LayoutDashboard, Settings, RotateCw, Move, MousePointerClick, DraftingCompass, ZoomInIcon, Sun, Moon, LayoutGrid, PencilRuler, Stamp, Mail, UserPlus, LifeBuoy, Cloud } from 'lucide-react'
+    DropdownMenuTrigger} from "@/components/ui/dropdown-menu"
+import { ZoomOut, Save, FileInput, RotateCcw, Camera, RailSymbol, LayoutDashboard, RotateCw, ZoomInIcon, LayoutGrid } from 'lucide-react'
 import { useModlerContext } from '@/context/ModlerContext'
-import { HornbyTrackPack } from '@/lib/trackPacks/hornby'
 import { Canvas } from './BaseGrid'
 import { themes } from '@/lib/themes'
-import { TrackPack, TrackPieceBase, TrackType } from '@/lib/track'
 import { loadState, saveState } from '@/lib/fileHandler'
-import { Switch } from './ui/switch'
-import { useTheme } from '@/context/ThemeContext'
-import { toolHandlers } from '@/lib/tools'
 import { ToolMenu } from './toolbar/ToolMenu'
 import { ThemeSelector } from './toolbar/ThemeSelector'
 import { BillOfMaterials } from './toolbar/BillOfMaterials'

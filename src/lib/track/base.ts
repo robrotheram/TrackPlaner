@@ -14,6 +14,7 @@ export abstract class TrackPieceBase {
     y: number;
     rotation: number;
     code: string;
+    isDev = process.env.NODE_ENV === 'development';   
 
     constructor(x: number, y: number, rotation: number) {
         this.x = x;
@@ -76,5 +77,4 @@ export abstract class TrackPieceBase {
         const rad = ToRadians(rotation);
         return { cos: Math.cos(rad), sin: Math.sin(rad) };
     }
-   
 }
