@@ -12,7 +12,7 @@ export default defineConfig({
         name: 'TrackPlanner',
         short_name: 'TrackPlanner',
         description: 'TrackPlanner',
-        theme_color: '#ffffff',
+        theme_color: '#000',
         icons: [
           {
             src: '/logo.svg',
