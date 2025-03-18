@@ -98,22 +98,25 @@ export function ModelRailwayToolbar() {
                 <nav className="bg-card text-card-foreground p-2 shadow-lg">
                     <div className="flex flex-col gap-3 p-2 lg:flex-row items-center justify-between">
                         <div className="flex w-full items-center space-x-2">
-                            <div className="logo flex aspect-square size-12 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                                <RailSymbol />
+                            <div className="flex space-x-2 w-full">
+                                <div className="logo sm:flex aspect-square size-12 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground hidden">
+                                    <RailSymbol />
+                                </div>
+                                <Input
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    onBlur={() => { setLayout({ type: "SET_LAYOUT_NAME", name }) }}
+                                    className="text-lg p-6  w-full" />
                             </div>
-                            <Input
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                onBlur={() => { setLayout({ type: "SET_LAYOUT_NAME", name }) }}
-                                className="text-lg p-6 h-8 w-full" />
+                            <div className="flex items-center space-x-2 ">
+                                <Button variant="outline" className='p-6 text-md' onClick={undo}>
+                                    <Undo />
+                                </Button>
+                                <Button variant="outline" className='p-6 text-md' onClick={redo}>
+                                    <Redo />
+                                </Button>
+                            </div>
                         </div>
-                        <Button variant="outline" className='p-6 text-md' onClick={undo}>
-                            <Undo />
-                        </Button>
-                        <Button variant="outline" className='p-6 text-md' onClick={redo}>
-                            <Redo />
-                        </Button>
-
                         <div className="flex items-center space-x-2 w-full justify-between lg:justify-end">
                             {state.tool === "ADD" && <AddTrackButton />}
                             <ToolMenu />
@@ -149,7 +152,7 @@ export function ModelRailwayToolbar() {
                 </nav>
                 <div className="flex flex-grow px-4 pb-4 w-full">
                     <div className="border-2 border-dashed border-gray-300 rounded-lg w-full h-full flex items-center justify-between text-muted-foreground">
-                        <div className="absolute top-40 md:top-24 right-8 space-x-2">
+                        <div className="absolute top-40 lg:top-24 right-8 space-x-2">
                             <Button size="icon" className="rounded-full" title="Zoom In" onClick={() => setScale(0.1)}>
                                 <ZoomInIcon />
                             </Button>
