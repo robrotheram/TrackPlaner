@@ -1,3 +1,5 @@
+import { Action } from "@/context/HistoryContect";
+import { Measurement } from "@/lib/measurements/measure";
 import { TrackPack, TrackPieceBase } from "@/lib/track";
 
 export type Point = { x: number; y: number };
@@ -20,7 +22,9 @@ export type ToolHandler = {
 export type CanvasContext = {
     getRealCoordinates: (x: number, y: number) => Point;
     setState: React.Dispatch<React.SetStateAction<CanvasState>>;
+    setLayout: (action: Action) => void;
     state: CanvasState;
+    layout: TrackLayout
     dragOffset: React.MutableRefObject<Point>
 };
 
@@ -47,14 +51,15 @@ export interface CanvasState {
     tool: Tool
     addTrackPiece?: TrackPack
 
-
     pinchDistance: number
-    pinchAngle: number
-    selectedPiece?: number
-    
-    layoutName: string
+    pinchAngle: number    
+}
+
+export interface TrackLayout {
+    name: string
     tracks: TrackPieceBase[]
     measurements: Measurement[]
+    selectedPiece?: string
 }
 
 export interface Theme {
@@ -66,13 +71,6 @@ export interface Theme {
         color: string
         fill: string
     }
-}
-
-
-export interface Measurement {
-    start: Point;
-    end: Point;
-    distance: number;
 }
 
 export type Endpoint = {

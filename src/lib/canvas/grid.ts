@@ -1,4 +1,5 @@
-import { CanvasState, Theme } from "@/types"
+import { CanvasState, Point, Theme } from "@/types"
+import { TrackPieceBase } from "../track";
 
 export const DrawGrid = (
     canvas: HTMLCanvasElement,
@@ -63,4 +64,37 @@ export const getPinchAngle = (touches: React.TouchList) => {
     const dx = touches[1].clientX - touches[0].clientX;
     const dy = touches[1].clientY - touches[0].clientY;
     return Math.atan2(dy, dx);
+};
+
+
+export const findNearestEndpoint = (
+    currentPiece: any,
+    allTracks: any[],
+    currentPoint: Point,
+    threshold: number
+): { point: Point | null; track: TrackPieceBase | null } => {
+    let nearestPoint: Point | null = null;
+    let nearestTrack: TrackPieceBase | null = null;
+    let minDistance = threshold;
+
+    allTracks.forEach(track => {
+        if (track === currentPiece) return;
+
+        const markers = track.getMarkerPoints();
+        const endpoints = [markers.start, markers.end, markers.endArc].filter(point => point != null);
+
+        endpoints.forEach(point => {
+            const dx = point.x - currentPoint.x;
+            const dy = point.y - currentPoint.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance < minDistance) {
+                minDistance = distance;
+                nearestPoint = point;
+                nearestTrack = track;
+            }
+        });
+    });
+
+    return { point: nearestPoint, track: nearestTrack };
 };

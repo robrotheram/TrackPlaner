@@ -134,6 +134,7 @@ export class TrackCurvedPiece extends TrackPieceBase {
 
     serialise(): TrackPack {
         return {
+            id: this.id,
             code: this.code,
             type: "curve",
             startAngle: this.startAngle,

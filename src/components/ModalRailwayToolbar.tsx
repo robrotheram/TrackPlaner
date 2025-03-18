@@ -1,4 +1,4 @@
-import { useState, useRef, ChangeEvent } from 'react'
+import { useState, useRef, ChangeEvent, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { TooltipProvider } from "@/components/ui/tooltip"
@@ -6,8 +6,9 @@ import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
-    DropdownMenuTrigger} from "@/components/ui/dropdown-menu"
-import { ZoomOut, Save, FileInput, RotateCcw, Camera, RailSymbol, LayoutDashboard, RotateCw, ZoomInIcon, LayoutGrid } from 'lucide-react'
+    DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu"
+import { ZoomOut, Save, FileInput, RotateCcw, Camera, RailSymbol, LayoutDashboard, RotateCw, ZoomInIcon, LayoutGrid, Undo, Redo } from 'lucide-react'
 import { useModlerContext } from '@/context/ModlerContext'
 import { Canvas } from './BaseGrid'
 import { themes } from '@/lib/themes'
@@ -16,6 +17,7 @@ import { ToolMenu } from './toolbar/ToolMenu'
 import { ThemeSelector } from './toolbar/ThemeSelector'
 import { BillOfMaterials } from './toolbar/BillOfMaterials'
 import { AddTrackButton } from './toolbar/AddTrack'
+import { useHistoryState } from '@/context/HistoryContect'
 
 
 export function ModelRailwayToolbar() {
@@ -23,7 +25,12 @@ export function ModelRailwayToolbar() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
     const { state, setState, setRotation, setScale } = useModlerContext();
+    const { layout, setLayout, undo, redo } = useHistoryState();
+    const [name, setName] = useState(layout.name)
 
+    useEffect(() => {
+        setName(layout.name)
+    }, [layout.name])
 
     const [themeIndex, setThemeIndex] = useState(0);
 
@@ -40,36 +47,48 @@ export function ModelRailwayToolbar() {
 
     const handleSave = async () => {
         try {
-            await saveState(state)
+            await saveState(layout)
         } catch (error) {
             console.error("Error during save:", error);
         }
     }
 
     const handleNewLayout = () => {
-        setState(prev => ({ ...prev, layoutName: "New Layout", tracks: [], offsetX: 0, offsetY: 0, scale: 1, measurements: [] }))
+        setState(prev => ({ ...prev, offsetX: 0, offsetY: 0, scale: 1, rotation: 0 }));
+        setLayout({
+            type: "SET_STATE",
+            state: {
+                layout: {
+                    name: "New Layout",
+                    tracks: [],
+                    measurements: []
+                },
+                undoStack: [],
+                redoStack: []
+            }
+        })
     }
 
     const handleLoadClick = () => {
         fileInputRef.current?.click();
     };
 
+
     const handleLoad = (e: ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
-
         const reader = new FileReader();
         reader.onload = (event) => {
             const result = event.target?.result;
             if (typeof result === 'string') {
                 try {
-                    loadState(setState, result)
+                    handleNewLayout();
+                    loadState(setLayout, result)
                 } catch (error) {
                     console.error('Error parsing the loaded file:', error);
                 }
             }
         };
-
         reader.readAsText(file);
     };
 
@@ -83,13 +102,21 @@ export function ModelRailwayToolbar() {
                                 <RailSymbol />
                             </div>
                             <Input
-                                value={state.layoutName}
-                                onChange={(e) => setState(prev => ({ ...prev, layoutName: e.target.value }))}
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                onBlur={() => { setLayout({ type: "SET_LAYOUT_NAME", name }) }}
                                 className="text-lg p-6 h-8 w-full" />
                         </div>
+                        <Button variant="outline" className='p-6 text-md' onClick={undo}>
+                            <Undo />
+                        </Button>
+                        <Button variant="outline" className='p-6 text-md' onClick={redo}>
+                            <Redo />
+                        </Button>
+
                         <div className="flex items-center space-x-2 w-full justify-between lg:justify-end">
                             {state.tool === "ADD" && <AddTrackButton />}
-                            <ToolMenu/>
+                            <ToolMenu />
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                     <Button variant="outline" className='p-6 text-md'><LayoutDashboard /><span className='hidden sm:block'>Layout</span> </Button>

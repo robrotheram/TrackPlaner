@@ -1,39 +1,50 @@
 import { CanvasContext, ToolHandler } from "@/types";
 import { Ruler } from "lucide-react";
+import { Measurement } from "../measurements/measure";
 
 
-export const MeasurementHandler:ToolHandler = {
+export const MeasurementHandler: ToolHandler = {
     icon: ({ size, color, fill }) => <Ruler size={size} color={color} fill={fill} />,
-    onMouseDown: (e: React.MouseEvent, {state, setState, getRealCoordinates}: CanvasContext) => {
+    onMouseDown: (e: React.MouseEvent, { layout, state, setState, setLayout, getRealCoordinates }: CanvasContext) => {
         const coords = getRealCoordinates(e.clientX, e.clientY);
-        const measurements = [...state.measurements];
+        const measurements = [...layout.measurements];
         if (!state.isToolActive) {
-            measurements.push({ start: coords, end: coords, distance: 0 })
+            measurements.push(new Measurement(coords));
         }
         setState(prev => ({
             ...prev,
             isToolActive: !state.isToolActive,
-            measurements,
             lastX: coords.x,
             lastY: coords.y
         }));
+        setLayout({
+            type: "ON_MEASUREMENT_CHANGE",
+            measurements
+        })
+
     },
-    onMouseMove: (e: React.MouseEvent, {state, setState, getRealCoordinates}: CanvasContext) => {
+    onMouseMove: (e: React.MouseEvent, { layout, state, setLayout, getRealCoordinates }: CanvasContext) => {
         if (state.isToolActive) {
             const { x, y } = getRealCoordinates(e.clientX, e.clientY);
-            const dx = x - state.lastX;
-            const dy = y - state.lastY;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-            const measurements = [...state.measurements];
-            measurements[measurements.length - 1] = {
-                    start: { x: state.lastX, y: state.lastY },
-                    end: { x, y },
-                    distance,
-                };
+            const measurements = [...layout.measurements];
+            measurements[measurements.length - 1].setEnd({x, y});
+            setLayout({
+                type: "ON_MEASUREMENT_CHANGE",
+                measurements
+            })
+        }
+    },
+    onMouseUp: (_, { layout, state, setLayout, setState }: CanvasContext) => {    
+        if (state.isToolActive) {
             setState(prev => ({
                 ...prev,
-                measurements
+                isToolActive: false
             }));
+            setLayout({
+                type: "UPDATE_MEASUREMENTS",
+                measurements: layout.measurements
+            })  
         }
+           
     }
 }

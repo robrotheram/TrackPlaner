@@ -10,6 +10,7 @@ export const tieThikness = 3;
 export const gridSize = 5;
 
 export abstract class TrackPieceBase {
+    id: string;
     x: number;
     y: number;
     rotation: number;
@@ -17,6 +18,7 @@ export abstract class TrackPieceBase {
     isDev = process.env.NODE_ENV === 'development';   
 
     constructor(x: number, y: number, rotation: number) {
+        this.id = Math.random().toString(36).slice(2, 9); 
         this.x = x;
         this.y = y;
         this.rotation = rotation;
@@ -57,8 +59,6 @@ export abstract class TrackPieceBase {
         this.rotation = rotation >= 0 ? rotation % 360 : (rotation % 360 + 360) % 360;
         console.log(this.rotation)
     }
-
-    
 
     markers(ctx: CanvasRenderingContext2D, ...points:Point[]) {
         const drawMarker = (ctx: CanvasRenderingContext2D, point: Point, color: string) =>{

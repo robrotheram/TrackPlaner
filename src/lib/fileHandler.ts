@@ -1,6 +1,9 @@
-import { CanvasState, Measurement } from "@/types";
-import { TrackPack } from "./track";
+import { TrackLayout } from "@/types";
 import { CreateTrackPiece } from "./track/utils";
+import { CreateMeasurement } from "./measurements";
+import { Action } from "@/context/HistoryContect";
+import { SerialisedTrackLayout, toSerialisedTrackLayout } from "./utils";
+
 
 
 
@@ -15,43 +18,19 @@ function serializeToFilename(inputString: string, replacementChar = "_") {
 }
 
 
-type SerializedLayout = {
-    name: string,
-    tracks: TrackPack[]
-    measurements: Measurement[]
-    scale?: number   
-    offsetX?: number 
-    offsetY?: number 
-}
 
-
-export const serializedState = (state: CanvasState): SerializedLayout => {
+export const toCanvasState = (serialized: SerialisedTrackLayout): TrackLayout => {
     return {
-        name: state.layoutName,
-        tracks: state.tracks.map(track => track.serialise()),
-        measurements: state.measurements,
-        scale: state.scale,
-        offsetX: state.offsetX, 
-        offsetY: state.offsetY  
-    }
-}
-
-export const toCanvasState = (serialized: SerializedLayout, state:CanvasState): CanvasState => {
-    return {
-        ...state,
-        layoutName: serialized.name,
+        name: serialized.name,
         tracks: serialized.tracks.map(track => CreateTrackPiece(track)),
-        measurements: serialized.measurements,
-        scale: serialized.scale ?? 1,
-        offsetX: serialized.offsetX ?? 0,
-        offsetY: serialized.offsetY ?? 0,
+        measurements: serialized.measurements.map(measurement => CreateMeasurement(measurement)),
     }
 }   
 
-export const saveState = async (state: CanvasState) => {
-    const blob = new Blob([JSON.stringify(serializedState(state))], { type: 'application/octet-stream' });
+export const saveState = async (layout:TrackLayout) => {
+    const blob = new Blob([JSON.stringify(toSerialisedTrackLayout(layout))], { type: 'application/octet-stream' });
     const fileHandle = await (window as any).showSaveFilePicker({
-        suggestedName: `${serializeToFilename(state.layoutName)}.layout`,
+        suggestedName: `${serializeToFilename(layout.name)}.layout`,
         types: [
             {
                 description: 'Binary Files',
@@ -65,6 +44,10 @@ export const saveState = async (state: CanvasState) => {
 }
 
 
-export const loadState = (setState: React.Dispatch<React.SetStateAction<CanvasState>>, str: string) => {
-        setState(prev => toCanvasState(JSON.parse(str), prev));  
+export const loadState = (setLayout: (action:Action)=>void, str: string) => {
+    const layout = toCanvasState(JSON.parse(str));
+    setLayout({
+        type: "SET_LAYOUT",
+        layout
+    });
 }

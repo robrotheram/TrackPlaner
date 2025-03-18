@@ -1,35 +1,40 @@
-import { findNearestEndpoint } from "@/lib/canvas/measure";
-import { TrackCurvedPiece } from "@/lib/track";
+import { TrackCurvedPiece, TrackPieceBase } from "@/lib/track";
 import { CanvasContext, Endpoint } from "@/types";
 import { typeFromPiece } from "../track/utils";
+import { findNearestEndpoint } from "../canvas/grid";
 
 export const MoveHandler = {
-            onMouseDown: (e: React.MouseEvent, {state, dragOffset, setState, getRealCoordinates}: CanvasContext) => {
+            onMouseDown: (e: React.MouseEvent, {state, layout, dragOffset, setState,setLayout, getRealCoordinates}: CanvasContext) => {
                 const coords = getRealCoordinates(e.clientX, e.clientY);
-                const selectTrack = state.tracks.findIndex((piece: any) =>
-                    piece.isSelectable(coords.x, coords.y, 20 / state.scale)
-                );
 
-                if (selectTrack > 0) {
+                const selectTrack = layout.tracks.filter((piece: any) => piece.isSelectable(coords.x, coords.y, 20 / state.scale))[0];
+
+                if (selectTrack) {
                     dragOffset.current = {
-                        x: coords.x - state.tracks[selectTrack].x,
-                        y: coords.y - state.tracks[selectTrack].y,
+                        x: coords.x - selectTrack.x,
+                        y: coords.y - selectTrack.y,
                       };    
+
+                      setLayout({
+                        type: "SELECT_TRACK",
+                        selectedPieceId: selectTrack.id
+                    })
                 };
                 
                 setState(prev => ({
                     ...prev,
                     isDragging: true,
-                    selectedPiece: selectTrack !== -1 ? selectTrack : undefined,
                     lastX: coords.x,
                     lastY: coords.y
                 }));
+
+               
             },
-            onMouseMove: (e: React.MouseEvent, {state, dragOffset, setState, getRealCoordinates}: CanvasContext) => {
+            onMouseMove: (e: React.MouseEvent, {layout, state, dragOffset, setLayout, getRealCoordinates}: CanvasContext) => {
                 const { x, y } = getRealCoordinates(e.clientX, e.clientY);
-                if (state.isDragging && state.selectedPiece !== undefined) {
-                    const selectedTrack = state.tracks[state.selectedPiece];
-                    const updatedPieces = [...state.tracks];
+                if (state.isDragging && layout.selectedPiece !== undefined) {
+                    const selectedTrack:TrackPieceBase = layout.tracks.filter((piece: any) => piece.id === layout.selectedPiece)[0];    
+                    const updatedPieces = [...layout.tracks];
 
                     // First update the position normally
                     selectedTrack.setLocation(x, y);
@@ -48,7 +53,7 @@ export const MoveHandler = {
                     endpoints.forEach(({ point }) => {
                         const { point: nearestPoint, track: nearestTrack } = findNearestEndpoint(
                             selectedTrack,
-                            state.tracks,
+                            layout.tracks,
                             point,
                             20 / state.scale
                         );
@@ -85,25 +90,23 @@ export const MoveHandler = {
                             );
                         }
                     }
-
-                    updatedPieces[state.selectedPiece] = selectedTrack;
-                    setState(prev => ({
-                        ...prev,
-                        tracks: updatedPieces,
-                    }));
+                    setLayout({
+                        type:"ON_MOVE",
+                        tracks: updatedPieces
+                    })
                 }
-                //  else {
-                //     const selectTrack = state.tracks.findIndex((piece: any) =>
-                //         piece.isSelectable(x, y, 20 / state.scale)
-                //     );
-                //     // setCanGrab(selectTrack !== -1);
-                // }
             },
-            onMouseUp: (_: React.MouseEvent, {setState}: CanvasContext) => {
+            onMouseUp: (_: React.MouseEvent, {layout, state, setLayout, setState}: CanvasContext) => {
                 setState(prev => ({
                     ...prev,
                     isDragging: false,
-                    // selectedPiece: undefined
                 }));
+                if (state.isDragging && layout.selectedPiece)  {
+                    setLayout({
+                        type:"UPDATE_TRACK",
+                        tracks: layout.tracks
+                    })
+                } 
+                
             }
         }

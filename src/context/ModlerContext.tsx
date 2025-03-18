@@ -1,11 +1,7 @@
-import { serializedState, toCanvasState } from '@/lib/fileHandler';
-import { TrackPieceBase } from '@/lib/track';
-import {Point, CanvasState, Tool } from '@/types';
+import { Point, CanvasState, Tool } from '@/types';
 import React, { createContext, useContext, ReactNode, useEffect, useState } from 'react';
 
-const storageKey = "modlerState";
-
-const initialState: CanvasState = {
+export const initialState: CanvasState = {
     scale: 1,
     rotation: 0,
     offsetX: 0,
@@ -17,46 +13,29 @@ const initialState: CanvasState = {
     lastY: 0,
     pinchDistance: 0,
     pinchAngle: 0,
-    tool: 'MOVE',
-    tracks: [],
-    measurements: [],
-    layoutName: "My Railway Layout"
+    tool: 'MOVE'
 }
 
 export const ModlerContext = createContext<{
     state: CanvasState;
     setScale: (scale: number) => void; // Add setScale function
     setRotation: (scale: number) => void; // Add setScale function
-    setPan:(delta:Point) => void
-    setTool:(tool:Tool) => void
-    addTrack:(track:TrackPieceBase) => void
+    setPan: (delta: Point) => void
+    setTool: (tool: Tool) => void
     setState: React.Dispatch<React.SetStateAction<CanvasState>>;
 }>({
     state: initialState,
     setScale: () => { }, // Initialize setScale
     setRotation: () => { }, // Initialize setScale
     setPan: () => { }, // Initialize setScale
-    setState: ()=> { }, // Initialize setScale
-    setTool: ()=> { }, // Initialize setScale
-    addTrack: ()=> { }, // Initialize setScale
+    setState: () => { }, // Initialize setScale
+    setTool: () => { }, // Initialize setScale
 });
 
-const loadFromStorage = ():CanvasState => {
-    const saved = localStorage.getItem(storageKey);
-    if (saved) {
-        return toCanvasState(JSON.parse(saved), initialState);
-    }
-    return initialState;
-}   
 
+export const ModlerProvider = ({ children }: { children: ReactNode }) => {
+    const [state, setState] = useState<CanvasState>(initialState);
 
-export const ModlerProvider = ({ children }: { children: ReactNode}) => {
-    const [state, setState] = useState<CanvasState>(loadFromStorage());
-
-    useEffect(() => {
-        localStorage.setItem(storageKey, JSON.stringify(serializedState(state)));        
-    }, [state]);    
-    
     const setScale = (scale: number) => {
         setState(prev => ({
             ...prev,
@@ -66,10 +45,10 @@ export const ModlerProvider = ({ children }: { children: ReactNode}) => {
     const setRotation = (rotation: number) => {
         setState(prev => ({
             ...prev,
-            rotation : prev.rotation + rotation
+            rotation: prev.rotation + rotation
         }));
     };
-    const setPan = (delta:Point) => {
+    const setPan = (delta: Point) => {
         setState(prev => ({
             ...prev,
             offsetX: prev.offsetX + delta.x,
@@ -77,62 +56,57 @@ export const ModlerProvider = ({ children }: { children: ReactNode}) => {
         }));
     }
 
-    const setTool = (tool:Tool) => {
+    const setTool = (tool: Tool) => {
         setState(prev => ({
             ...prev,
             tool,
         }));
     }
 
-    const addTrack = (track: TrackPieceBase) => {
-        setState(prev => ({
-            ...prev,
-            tracks:[...prev.tracks, track],
-            tool: "MOVE"
-        }));
-    }
-
 
     const handleKeyDown = (event: KeyboardEvent) => {
-        if (event.key === 'Escape') {
-            setState(prev => ({
-                ...prev,
-                tool:'MOVE',
-                isDragging: false,
-                isPanning: false,
-                isToolActive: false,
-                selectedPiece: -1,
-            }));
-        }
-        if (event.key === 'e') {
-            setState(prev => ({
-                ...prev,
-                tool: "ERASER"
-            }));
-        }
-        if (event.key === 'm') {
-            setState(prev => ({
-                ...prev,
-                tool: "MEASURE"
-            }));
-        }
-        if (event.key === 'r') {
-            setState(prev => ({
-                ...prev,
-                tool: "ROTATE"
-            }));
-        }
-        if (event.key === 'd') {
-            setState(prev => ({
-                ...prev,
-                tool: "DUPLICATE"
-            }));
-        }
-        if (event.key === 'a') {
-            setState(prev => ({
-                ...prev,
-                tool: "ADD"
-            }));
+        if (event.target instanceof HTMLBodyElement) {
+            console.log("EVWEN", event)
+            if (event.key === 'Escape') {
+                setState(prev => ({
+                    ...prev,
+                    tool: 'MOVE',
+                    isDragging: false,
+                    isPanning: false,
+                    isToolActive: false,
+                    selectedPiece: -1,
+                }));
+            }
+            if (event.key === 'e') {
+                setState(prev => ({
+                    ...prev,
+                    tool: "ERASER"
+                }));
+            }
+            if (event.key === 'm') {
+                setState(prev => ({
+                    ...prev,
+                    tool: "MEASURE"
+                }));
+            }
+            if (event.key === 'r') {
+                setState(prev => ({
+                    ...prev,
+                    tool: "ROTATE"
+                }));
+            }
+            if (event.key === 'd') {
+                setState(prev => ({
+                    ...prev,
+                    tool: "DUPLICATE"
+                }));
+            }
+            if (event.key === 'a') {
+                setState(prev => ({
+                    ...prev,
+                    tool: "ADD"
+                }));
+            }
         }
     };
 
@@ -143,7 +117,7 @@ export const ModlerProvider = ({ children }: { children: ReactNode}) => {
         };
     }, []);
 
-    const contextValue = React.useMemo(() => ({ state, setRotation, setScale, setPan, setState, setTool, addTrack }), [state]);
+    const contextValue = React.useMemo(() => ({ state, setRotation, setScale, setPan, setState, setTool }), [state]);
 
     return (
         <ModlerContext.Provider value={contextValue}>

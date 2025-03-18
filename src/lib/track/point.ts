@@ -158,6 +158,7 @@ export abstract class TrackPointPiece extends TrackCurvedPiece {
 
     serialise(): TrackPack {
         return {
+            id: this.id,
             code: this.code,
             type: this.getDirectionMultiplier() === 1 ? "rhpoint" : "lhpoint",
             length: this.length,

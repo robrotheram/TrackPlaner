@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { useModlerContext } from '@/context/ModlerContext';
 import { DrawGrid, getPinchAngle, getPinchDistance } from '@/lib/canvas/grid';
-import { drawMeasurements } from '@/lib/canvas/measure';
 import { CanvasContext, Point, Theme } from '@/types';
 import { toolHandlers } from '@/lib/tools';
+import { useHistoryState } from '@/context/HistoryContect';
 
 interface CanvasProps {
     theme: Theme;
@@ -11,7 +11,9 @@ interface CanvasProps {
 }
 
 export const Canvas: React.FC<CanvasProps> = ({ theme, canvasRef }) => {
-    const { state, setState, setTool } = useModlerContext();
+    const {state, setState, setTool } = useModlerContext();
+    const {layout, setLayout} = useHistoryState();
+
     const [cursorPosition, setCursorPosition] = useState<Point | null>(null);
     const dragOffsetRef = useRef({ x: 0, y: 0 }as Point);
 
@@ -51,7 +53,6 @@ export const Canvas: React.FC<CanvasProps> = ({ theme, canvasRef }) => {
         const dpr = window.devicePixelRatio || 1;
         canvas.width = canvas.clientWidth * dpr;
         canvas.height = canvas.clientHeight * dpr;
-        // ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.scale(dpr, dpr);
 
         ctx.save();
@@ -61,14 +62,11 @@ export const Canvas: React.FC<CanvasProps> = ({ theme, canvasRef }) => {
         ctx.translate(-canvas.width / 2 + state.offsetX, -canvas.height / 2 + state.offsetY);
 
         DrawGrid(canvas, ctx, theme, state);
-
-        drawMeasurements(ctx, state.measurements);
-        state.tracks.forEach((piece, index) => piece.draw(ctx, index === state.selectedPiece));
+        layout.measurements.forEach((m) => m.draw(ctx));
+        layout.tracks.forEach((piece) => piece.draw(ctx, piece.id === layout.selectedPiece));
         ctx.restore();
 
-        
-        
-    }, [theme, state, canvasRef]);
+    }, [theme, state, layout, canvasRef]);
 
     const handleMouseDown = useCallback((e: React.MouseEvent) => {
         const currentTool = e.button === 1 ? toolHandlers["PANNING"] : toolHandlers[state.tool];
@@ -76,8 +74,10 @@ export const Canvas: React.FC<CanvasProps> = ({ theme, canvasRef }) => {
         const context: CanvasContext = {
             getRealCoordinates,
             setState,
+            setLayout,
             dragOffset: dragOffsetRef,
-            state
+            state,
+            layout
         };
         currentTool?.onMouseDown?.(e, context);
         setCursorPosition({ x: e.clientX, y: e.clientY });
@@ -88,8 +88,10 @@ export const Canvas: React.FC<CanvasProps> = ({ theme, canvasRef }) => {
         const context: CanvasContext = {
             getRealCoordinates,
             setState,
+            setLayout,
             dragOffset: dragOffsetRef,
-            state
+            state,
+            layout
         };
 
         currentTool?.onMouseMove?.(e, context);
@@ -102,8 +104,10 @@ export const Canvas: React.FC<CanvasProps> = ({ theme, canvasRef }) => {
         const context: CanvasContext = {
             getRealCoordinates,
             setState,
+            setLayout,
             dragOffset: dragOffsetRef,
-            state
+            state,
+            layout
         };
 
         currentTool?.onMouseUp?.(e, context);
@@ -209,7 +213,7 @@ export const Canvas: React.FC<CanvasProps> = ({ theme, canvasRef }) => {
         if (toolHandlers[state.tool].icon) {
             return "none"
         }
-        if (state.selectedPiece && state.selectedPiece !== -1) {
+        if (layout.selectedPiece) {
             return "grabbing"
         }
     }

@@ -117,6 +117,7 @@ export class TrackStraightPiece extends TrackPieceBase {
 
     serialise(): TrackPack {
         return {
+            id: this.id,
             code: this.code,
             type: "straight",
             length: this.length,

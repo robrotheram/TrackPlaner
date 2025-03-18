@@ -8,6 +8,7 @@ export { LeftHandedTrackPointPiece, RightHandedTrackPointPiece } from "./point"
 
 export type TrackType = "straight" | "curve" | "lhpoint" | "rhpoint"
 export type TrackPack = {
+    id?: string;
     code: string;
     type: TrackType;
     length?: number;

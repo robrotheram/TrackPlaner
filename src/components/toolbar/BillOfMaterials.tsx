@@ -1,13 +1,13 @@
-import { useModlerContext } from "@/context/ModlerContext";
 import { TrackPieceBase } from "@/lib/track";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { Button } from "../ui/button";
 import { Save, ShoppingCart } from "lucide-react";
+import { useHistoryState } from "@/context/HistoryContect";
 
 export const BillOfMaterials = () => {
-    const { state } = useModlerContext();
+    const {layout} = useHistoryState();
 
-    const trackSummary = state.tracks.reduce((acc: { [key: string]: number }, track: TrackPieceBase) => {
+    const trackSummary = layout.tracks.reduce((acc: { [key: string]: number }, track: TrackPieceBase) => {
         acc[track.code] = (acc[track.code] || 0) + 1;
         return acc;
     }, {});

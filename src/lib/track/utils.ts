@@ -24,17 +24,19 @@ export function typeFromPiece(trackPiece: TrackPieceBase): TrackType {
 }
 
 export const CreateTrackPiece = (trackPack: TrackPack): TrackPieceBase => {
+    let trackPiece: TrackPieceBase;
     switch (trackPack.type) {
         case "straight":
-            return new TrackStraightPiece(
+            trackPiece = new TrackStraightPiece(
                 trackPack.code, 
                 trackPack.position?.x ?? 0, 
                 trackPack.position?.y ?? 0, 
                 trackPack.rotation ?? 0, 
                 trackPack.length!
             );
+            break;
         case "curve":
-            return new TrackCurvedPiece(
+            trackPiece = new TrackCurvedPiece(
                 trackPack.code,
                 trackPack.position?.x ?? 0,
                 trackPack.position?.y ?? 0,
@@ -43,23 +45,30 @@ export const CreateTrackPiece = (trackPack: TrackPack): TrackPieceBase => {
                 trackPack.endAngle ?? 0,
                 trackPack.radius ?? 0
             );
+            break;
         case "lhpoint":
-            return new LeftHandedTrackPointPiece(
+            trackPiece = new LeftHandedTrackPointPiece(
                 trackPack.code,
                 trackPack.position?.x ?? 0,
                 trackPack.position?.y ?? 0,
                 trackPack.rotation ?? 0,
                 trackPack.length ?? 0
             );
+            break;
         case "rhpoint":
-            return new RightHandedTrackPointPiece(
+            trackPiece = new RightHandedTrackPointPiece(
                 trackPack.code,
                 trackPack.position?.x ?? 0,
                 trackPack.position?.y ?? 0,
                 trackPack.rotation ?? 0,
                 trackPack.length ?? 0
             );
+            break;
         default:
             throw new Error(`Invalid track type ${trackPack.type}`);
     }
+    if (trackPack.id){
+        trackPiece.id = trackPack.id;
+    }
+    return trackPiece;
 }

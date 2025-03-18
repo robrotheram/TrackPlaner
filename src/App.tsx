@@ -1,6 +1,7 @@
 import React from 'react'
 import { ModlerProvider } from './context/ModlerContext'
 import { ModelRailwayToolbar } from './components/ModalRailwayToolbar'
+import { StateHistoryContextProvider } from './context/HistoryContect'
 
 export const Logo = () => {
   return <div className='flex-col justify-center items-center sm:flex hidden'>
@@ -30,9 +31,11 @@ export const LogoSVG: React.FC = () => {
 
 function App() {
   return (
+    <StateHistoryContextProvider>
     <ModlerProvider>
       <ModelRailwayToolbar />
     </ModlerProvider>
+    </StateHistoryContextProvider>
   )
 }
 
