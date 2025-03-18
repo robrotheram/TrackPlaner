@@ -1,1 +1,1 @@
-{"name":"TrackPlanner","short_name":"TrackPlanner","start_url":"/TrackPlaner/","display":"standalone","background_color":"#ffffff","lang":"en","scope":"/TrackPlaner/","description":"TrackPlanner","theme_color":"#ffffff","icons":[{"src":"/logo.svg","sizes":"any","type":"image/svg"}]}
+{"name":"TrackPlanner","short_name":"TrackPlanner","start_url":"/TrackPlaner/","display":"standalone","background_color":"#ffffff","lang":"en","scope":"/TrackPlaner/","description":"TrackPlanner","theme_color":"#000","icons":[{"src":"/logo.svg","sizes":"any","type":"image/svg"}]}
