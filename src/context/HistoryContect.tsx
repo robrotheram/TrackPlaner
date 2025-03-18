@@ -4,7 +4,7 @@ import { fromSerialisedTrackLayout, SerialisedTrackLayout } from "@/lib/utils";
 import { TrackLayout } from "@/types";
 import { createContext, ReactNode, useContext, useEffect, useMemo, useReducer, useState } from "react";
 
-const storageKey = "modlerState";
+const storageKey = "trackPlanner.v.0.1";
 
 interface State {
     layout: SerialisedTrackLayout;
@@ -55,7 +55,7 @@ function reducer(state: State, action: Action): State {
         const oldState: State = loadFromStorage();
         const newState = {
             layout,
-            undoStack: [...state.undoStack, oldState.layout],  // Clone and push the current layout into undo
+            undoStack: [...state.undoStack, oldState.layout],
             redoStack: [],
         };
         localStorage.setItem(storageKey, JSON.stringify(newState));
