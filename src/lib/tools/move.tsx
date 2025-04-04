@@ -1,4 +1,4 @@
-import { TrackCurvedPiece, TrackPieceBase } from "@/lib/track";
+import { TrackPieceBase } from "@/lib/track";
 import { CanvasContext, Endpoint } from "@/types";
 import { typeFromPiece } from "../track/utils";
 import { findNearestEndpoint } from "../canvas/grid";
@@ -45,6 +45,10 @@ export const MoveHandler = {
                         { point: markers.start, isStart: true },
                         { point: markers.end, isStart: false }
                     ];
+                    if ((typeFromPiece(selectedTrack) === "lhpoint")||(typeFromPiece(selectedTrack) === "rhpoint")){
+                        endpoints.push({point: markers.endArc!, isStart:false})
+                    }
+                    console.log("endpoints", endpoints, typeFromPiece(selectedTrack))
 
                     // Find the nearest endpoint among all endpoints
                     let nearestEndpoint: Endpoint = {};
@@ -75,9 +79,13 @@ export const MoveHandler = {
 
                         // Adjust the position to align the endpoints
 
-                        if (selectedTrack instanceof TrackCurvedPiece) {
+                        if (["curve", "lhpoint", "rhpoint"].includes(typeFromPiece(selectedTrack))) {
                             // Special handling for curved tracks
-                            selectedTrack.setLocation(nearestPoint.x, nearestPoint.y);
+                            // selectedTrack.setLocation(nearestPoint.x, nearestPoint.y);
+                            selectedTrack.setLocation(
+                                selectedTrack.x + dx, //- dragOffset.current.x,
+                                selectedTrack.y + dy //- dragOffset.current.y,
+                            );
                         } else if (typeFromPiece(selectedTrack) === 'straight') {
                                 selectedTrack.setLocation(
                                     selectedTrack.x + dx, //- dragOffset.current.x,

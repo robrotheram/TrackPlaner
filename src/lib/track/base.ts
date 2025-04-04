@@ -29,7 +29,7 @@ export abstract class TrackPieceBase {
     abstract isSelectable(x: number, y: number, tolerance: number): boolean;
     abstract getCenter(): { x: number, y: number };
     abstract clone(): TrackPieceBase;
-    abstract getMarkerPoints():{center:Point, start:Point, end:Point}
+    abstract getMarkerPoints():{center:Point, start:Point, end:Point, arcOrigin?:Point, endArc?:Point}
     abstract serialise():TrackPack
 
     setLocation(x: number, y: number): void {

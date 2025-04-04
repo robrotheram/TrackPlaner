@@ -12,12 +12,12 @@ export function radiansToDegrees(radians: number): number {
 export function typeFromPiece(trackPiece: TrackPieceBase): TrackType {
     if (trackPiece instanceof TrackStraightPiece) {
         return "straight";
-    } else if (trackPiece instanceof TrackCurvedPiece) {
-        return "curve";
     } else if (trackPiece instanceof LeftHandedTrackPointPiece) {
         return "lhpoint";
     } else if (trackPiece instanceof RightHandedTrackPointPiece) {
         return "rhpoint";
+    } else if (trackPiece instanceof TrackCurvedPiece) {
+            return "curve";
     } else {
         throw new Error(`Invalid track type ${trackPiece.code}`);
     }
@@ -28,10 +28,10 @@ export const CreateTrackPiece = (trackPack: TrackPack): TrackPieceBase => {
     switch (trackPack.type) {
         case "straight":
             trackPiece = new TrackStraightPiece(
-                trackPack.code, 
-                trackPack.position?.x ?? 0, 
-                trackPack.position?.y ?? 0, 
-                trackPack.rotation ?? 0, 
+                trackPack.code,
+                trackPack.position?.x ?? 0,
+                trackPack.position?.y ?? 0,
+                trackPack.rotation ?? 0,
                 trackPack.length!
             );
             break;
@@ -52,6 +52,9 @@ export const CreateTrackPiece = (trackPack: TrackPack): TrackPieceBase => {
                 trackPack.position?.x ?? 0,
                 trackPack.position?.y ?? 0,
                 trackPack.rotation ?? 0,
+                trackPack.startAngle ?? 0,
+                trackPack.endAngle ?? 22.5,
+                trackPack.radius ?? 438,
                 trackPack.length ?? 0
             );
             break;
@@ -61,14 +64,17 @@ export const CreateTrackPiece = (trackPack: TrackPack): TrackPieceBase => {
                 trackPack.position?.x ?? 0,
                 trackPack.position?.y ?? 0,
                 trackPack.rotation ?? 0,
+                trackPack.startAngle ?? 0,
+                trackPack.endAngle ?? 22.5,
+                trackPack.radius ?? 438,
                 trackPack.length ?? 0
             );
             break;
         default:
             throw new Error(`Invalid track type ${trackPack.type}`);
     }
-    if (trackPack.id){
+    if (trackPack.id) {
         trackPiece.id = trackPack.id;
     }
     return trackPiece;
-}
+} 

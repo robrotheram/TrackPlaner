@@ -52,7 +52,7 @@ export abstract class TrackPointPiece extends TrackCurvedPiece {
     }
 
     draw(ctx: CanvasRenderingContext2D, isSelected?: boolean) {
-        const { center, start, end, arcOrigin} = this.getMarkerPoints();
+        const { center, start, end, arcOrigin, endArc} = this.getMarkerPoints();
         const directionMultiplier = this.getDirectionMultiplier();
 
         // Calculate the start and end angles correctly depending on the handedness
@@ -70,7 +70,7 @@ export abstract class TrackPointPiece extends TrackCurvedPiece {
         }
 
         ctx.save();
-        this.isDev && this.markers(ctx, center, start, end);  
+        this.isDev && this.markers(ctx, center, start, end, endArc);  
 
         // Draw ties
         ctx.save();
@@ -152,8 +152,8 @@ export abstract class TrackPointPiece extends TrackCurvedPiece {
     clone(): TrackPointPiece {
         const handedness = this.getDirectionMultiplier() === 1 ? "right" : "left";
         return handedness === "right"
-            ? new RightHandedTrackPointPiece(this.code, this.x, this.y, this.rotation, this.length)
-            : new LeftHandedTrackPointPiece(this.code, this.x, this.y, this.rotation, this.length);
+            ? new RightHandedTrackPointPiece(this.code, this.x, this.y, this.rotation, this.startAngle, this.endAngle, this.radius, this.length)
+            : new LeftHandedTrackPointPiece(this.code, this.x, this.y, this.rotation, this.startAngle, this.endAngle, this.radius, this.length);
     }
 
     serialise(): TrackPack {
@@ -163,7 +163,10 @@ export abstract class TrackPointPiece extends TrackCurvedPiece {
             type: this.getDirectionMultiplier() === 1 ? "rhpoint" : "lhpoint",
             length: this.length,
             position: { x: this.x, y: this.y },
-            rotation: this.rotation
+            rotation: this.rotation,
+            startAngle: this.startAngle,
+            endAngle: this.endAngle,
+            radius: this.radius,
         }
     }
 
@@ -191,16 +194,6 @@ const distanceToArc = (
 
 
 export class LeftHandedTrackPointPiece extends TrackPointPiece {
-    constructor(
-        code: string,
-        x: number,
-        y: number,
-        rotation: number,
-        length: number
-    ) {
-        super(code, x, y, rotation, 0, 22.5, 438, length);
-    }
-
     getDirectionMultiplier(): number {
         return -1;
     }
@@ -208,16 +201,6 @@ export class LeftHandedTrackPointPiece extends TrackPointPiece {
 
 
 export class RightHandedTrackPointPiece extends TrackPointPiece {
-    constructor(
-        code: string,
-        x: number,
-        y: number,
-        rotation: number,
-        length: number
-    ) {
-        super(code, x, y, rotation, 0, 22.5, 438, length);
-    }
-
     getDirectionMultiplier(): number {
         return 1;
     }

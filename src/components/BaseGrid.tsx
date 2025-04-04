@@ -121,7 +121,7 @@ export const Canvas: React.FC<CanvasProps> = ({ theme, canvasRef }) => {
             const delta = -e.deltaY * 0.001;
             setState(prev => ({
                 ...prev,
-                scale: Math.min(Math.max(state.scale + delta, 0.3), 2)
+                scale: Math.min(Math.max(state.scale + delta, 0.01), 8)
 
             }));
         } else if (e.shiftKey) {

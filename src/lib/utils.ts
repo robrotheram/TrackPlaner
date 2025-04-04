@@ -32,3 +32,11 @@ export const toSerialisedTrackLayout = (layout: TrackLayout): SerialisedTrackLay
       measurements: layout.measurements.map((measurement) => measurement.serialise())
   }
 }
+
+export const loadFromStorage = <T>(storageKey:string, initialState:T):T => {
+    const saved = localStorage.getItem(storageKey);
+    if (saved) {
+        return JSON.parse(saved)
+    }
+    return initialState;
+}

@@ -1,3 +1,4 @@
+import { loadFromStorage } from '@/lib/utils';
 import { Point, CanvasState, Tool } from '@/types';
 import React, { createContext, useContext, ReactNode, useEffect, useState } from 'react';
 
@@ -34,12 +35,16 @@ export const ModlerContext = createContext<{
 
 
 export const ModlerProvider = ({ children }: { children: ReactNode }) => {
-    const [state, setState] = useState<CanvasState>(initialState);
+    const [state, setState] = useState<CanvasState>(loadFromStorage('canvasState', initialState));  
+
+    useEffect(() => {
+        localStorage.setItem('canvasState', JSON.stringify(state));
+    }, [state]);
 
     const setScale = (scale: number) => {
         setState(prev => ({
             ...prev,
-            scale: Math.min(Math.max(prev.scale + scale, 0.1), 2)
+            scale: Math.min(Math.max(prev.scale + scale, 0.1), 3)
         }));
     };
     const setRotation = (rotation: number) => {

@@ -26,6 +26,7 @@ const CurvedMenu = ({ tracks, handleSelect }: TrackMenuProps) => {
             case 371: return "1st radius";
             case 438: return "2nd radius";
             case 505: return "3rd radius";
+            case 572: return "4th radius";
             default: return "Unknown";
         }
     }

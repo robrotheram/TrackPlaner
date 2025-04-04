@@ -17,7 +17,6 @@ export type TrackPack = {
     startAngle?: number;
     endAngle?: number;
 
-    image?: string;
     name?: string;
 
     position?: Point;

@@ -1,6 +1,6 @@
 import { Measurement } from "@/lib/measurements/measure";
 import { TrackPieceBase } from "@/lib/track";
-import { fromSerialisedTrackLayout, SerialisedTrackLayout } from "@/lib/utils";
+import { fromSerialisedTrackLayout, loadFromStorage, SerialisedTrackLayout } from "@/lib/utils";
 import { TrackLayout } from "@/types";
 import { createContext, ReactNode, useContext, useEffect, useMemo, useReducer, useState } from "react";
 
@@ -52,7 +52,7 @@ function reducer(state: State, action: Action): State {
             measurements: action.measurements?.map(m => m.serialise()) ?? state.layout.measurements,
             selectedPieceId: action.selectedPieceId
         }
-        const oldState: State = loadFromStorage();
+        const oldState: State = loadFromStorage(storageKey, initialState);
         const newState = {
             layout,
             undoStack: [...state.undoStack, oldState.layout],
@@ -139,16 +139,10 @@ export const StateHistoryContext = createContext<{
     setLayout: () => { },
 });
 
-const loadFromStorage = (): State => {
-    const saved = localStorage.getItem(storageKey);
-    if (saved) {
-        return JSON.parse(saved)
-    }
-    return initialState;
-}
+
 
 export const StateHistoryContextProvider = ({ children }: { children: ReactNode }) => {
-    const [state, dispatch] = useReducer(reducer, loadFromStorage());
+    const [state, dispatch] = useReducer(reducer, loadFromStorage(storageKey, initialState));
     const [actionHistory, setActionHistory] = useState<Action[]>([]);
 
     useEffect(() => {
@@ -171,7 +165,7 @@ export const StateHistoryContextProvider = ({ children }: { children: ReactNode 
       }, []);
     
     const undo = () => {
-        const oldState = loadFromStorage();
+        const oldState = loadFromStorage(storageKey, initialState);
         if (oldState.undoStack.length === 0) {
             return;
         }
@@ -185,7 +179,7 @@ export const StateHistoryContextProvider = ({ children }: { children: ReactNode 
     }
 
     const redo = () => {
-        const oldState = loadFromStorage();
+        const oldState = loadFromStorage(storageKey, initialState);
         if (oldState.redoStack.length === 0) {
             return;
         }

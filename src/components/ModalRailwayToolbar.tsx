@@ -150,9 +150,9 @@ export function ModelRailwayToolbar() {
                         </div>
                     </div>
                 </nav>
-                <div className="flex flex-grow px-4 pb-4 w-full">
+                <div className="flex flex-grow px-4 py-2 w-full">
                     <div className="border-2 border-dashed border-gray-300 rounded-lg w-full h-full flex items-center justify-between text-muted-foreground">
-                        <div className="absolute top-40 lg:top-24 right-8 space-x-2">
+                        <div className="absolute top-40 lg:top-[7rem] right-8 space-x-2">
                             <Button size="icon" className="rounded-full" title="Zoom In" onClick={() => setScale(0.1)}>
                                 <ZoomInIcon />
                             </Button>
