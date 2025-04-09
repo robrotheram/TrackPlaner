@@ -139,11 +139,11 @@ export const Canvas: React.FC<CanvasProps> = ({ theme, canvasRef }) => {
         const rect = canvasRef.current?.getBoundingClientRect();
         if (!rect) return;
 
-        const touch = e.touches[0];
-        const clientX = touch.clientX - rect.left;
-        const clientY = touch.clientY - rect.top;
-
         if (e.touches.length === 1) {
+            const touch = e.touches[0];
+            const clientX = touch.clientX - rect.left;
+            const clientY = touch.clientY - rect.top;
+
             setState(prev => ({
                 ...prev,
                 isDragging: true,
@@ -164,11 +164,11 @@ export const Canvas: React.FC<CanvasProps> = ({ theme, canvasRef }) => {
         const rect = canvasRef.current?.getBoundingClientRect();
         if (!rect) return;
 
-        const touch = e.touches[0];
-        const clientX = touch.clientX - rect.left;
-        const clientY = touch.clientY - rect.top;
-
         if (e.touches.length === 1 && state.isDragging) {
+            const touch = e.touches[0];
+            const clientX = touch.clientX - rect.left;
+            const clientY = touch.clientY - rect.top;
+
             const dx = clientX - state.lastX;
             const dy = clientY - state.lastY;
 
@@ -184,8 +184,21 @@ export const Canvas: React.FC<CanvasProps> = ({ theme, canvasRef }) => {
                 lastX: clientX,
                 lastY: clientY
             }));
+        } else if (e.touches.length === 2) {
+            const newPinchDistance = getPinchDistance(e.touches);
+            const newPinchAngle = getPinchAngle(e.touches);
+
+            const scaleDelta = (newPinchDistance / state.pinchDistance - 1) * 0.5 + 1; // Reduce zoom speed
+            const rotationDelta = newPinchAngle - state.pinchAngle;
+
+            setState(prev => ({
+                ...prev,
+                scale: Math.min(Math.max(prev.scale * scaleDelta, 0.1), 8),
+                rotation: prev.rotation + rotationDelta,
+                pinchDistance: newPinchDistance,
+                pinchAngle: newPinchAngle
+            }));
         }
-        // ... rest of the pinch handling remains the same
     }, [state, setState, canvasRef]);
 
     const handleTouchEnd = useCallback(() => {
@@ -196,6 +209,7 @@ export const Canvas: React.FC<CanvasProps> = ({ theme, canvasRef }) => {
     }, [setState]);
 
     const CurrentToolIcon = useMemo(() => {
+        if (state.tool === "MOVE") {return null}
         const tool = toolHandlers[state.tool];
         return tool ? tool.icon : null;
     }, [state.tool]);
@@ -210,12 +224,17 @@ export const Canvas: React.FC<CanvasProps> = ({ theme, canvasRef }) => {
 
 
     const getCursor = () => {
-        if (toolHandlers[state.tool].icon) {
-            return "none"
-        }
+       
         if (layout.selectedPiece) {
             return "grabbing"
         }
+
+        if (state.tool === "MOVE") {
+            return "pointer"
+        }else if (toolHandlers[state.tool].icon) {
+            return "none"
+        }
+       
     }
     return (
         <>
@@ -236,7 +255,7 @@ export const Canvas: React.FC<CanvasProps> = ({ theme, canvasRef }) => {
                     height: '100%',
                     background: theme.background,
                     cursor: getCursor(),
-                    touchAction: 'none'  // Add this line
+                    touchAction: 'none'
                 }}
             />
             {cursorPosition && CurrentToolIcon && (
@@ -250,7 +269,7 @@ export const Canvas: React.FC<CanvasProps> = ({ theme, canvasRef }) => {
                         zIndex: 1000,
                     }}
                 >
-                    <CurrentToolIcon size={24} color={theme.icon.color} fill={theme.icon.fill} />
+                    <CurrentToolIcon size={20} color={theme.icon.color} fill={theme.icon.fill} />
                 </div>
             )}
         </>

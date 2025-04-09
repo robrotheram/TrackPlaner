@@ -65,7 +65,7 @@ const PointsMenu = ({ tracks, handleSelect }: TrackMenuProps) => {
 
 
 export const AddTrackButton = () => {
-    const {state, setState} = useModlerContext(); 
+    const {state, setState, setTool} = useModlerContext(); 
     const tracks: Map<TrackType, TrackPack[]> = new Map();
 
     const handleSelect = (track: TrackPack) => {
@@ -93,6 +93,8 @@ export const AddTrackButton = () => {
             <CurvedMenu tracks={tracks.get("curve")!} handleSelect={handleSelect} />
             <DropdownMenuSeparator />
             <PointsMenu tracks={[...tracks.get("lhpoint")!, ...tracks.get("rhpoint")!]} handleSelect={handleSelect} />
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => {setTool("MOVE")}}>Cancel</DropdownMenuItem>
         </DropdownMenuContent>
     </DropdownMenu>
 }

@@ -1,13 +1,29 @@
-import { Moon, Settings, Sun } from "lucide-react"
+import { Fullscreen, Minimize, Moon, Settings, Sun } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "../ui/dropdown-menu"
 import { useTheme } from "@/context/ThemeContext"
 import { Button } from "../ui/button"
 import { Switch } from "../ui/switch"
 import { themes } from "@/lib/themes"
+import { DropdownMenuLabel } from "@radix-ui/react-dropdown-menu"
 
 type ThemeSelectorProps = {
     setThemeIndex: (themeIndex: number) => void
 }
+
+
+const FullscreenMenu = () => {
+    if (document.fullscreenElement) {
+        return <DropdownMenuItem onClick={() => { document.exitFullscreen(); }}>
+            <Minimize className="h-4 w-4 mr-2" />
+            Exit Full Screen
+        </DropdownMenuItem>
+    }
+    return <DropdownMenuItem onClick={() => { document.documentElement.requestFullscreen(); }}>
+        <Fullscreen className="h-4 w-4 mr-2" />
+        Full Screen
+    </DropdownMenuItem>
+}
+
 
 export const ThemeSelector = ({ setThemeIndex }: ThemeSelectorProps) => {
     const { theme, setTheme } = useTheme()
@@ -29,11 +45,16 @@ export const ThemeSelector = ({ setThemeIndex }: ThemeSelectorProps) => {
                 </div>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            {themes.map((theme, index) =>
-                <DropdownMenuItem key={theme.name} className='flex items-center' onClick={() => setThemeIndex(index)}>
-                    {theme.name}
-                </DropdownMenuItem>
-            )}
+            <FullscreenMenu />
+            <DropdownMenuSeparator />
+
+                <DropdownMenuLabel>Themes</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {themes.map((theme, index) =>
+                    <DropdownMenuItem key={theme.name} className='flex items-center' onClick={() => setThemeIndex(index)}>
+                        {theme.name}
+                    </DropdownMenuItem>
+                )}
         </DropdownMenuContent>
     </DropdownMenu>
 }

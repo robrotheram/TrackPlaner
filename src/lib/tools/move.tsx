@@ -1,9 +1,11 @@
 import { TrackPieceBase } from "@/lib/track";
-import { CanvasContext, Endpoint } from "@/types";
+import { CanvasContext, Endpoint, ToolHandler } from "@/types";
 import { typeFromPiece } from "../track/utils";
 import { findNearestEndpoint } from "../canvas/grid";
+import { PencilRuler } from "lucide-react";
 
-export const MoveHandler = {
+export const MoveHandler : ToolHandler = {
+            icon: ({ size, color, fill }) => <PencilRuler size={size} color={color} fill={fill} />,
             onMouseDown: (e: React.MouseEvent, {state, layout, dragOffset, setState,setLayout, getRealCoordinates}: CanvasContext) => {
                 const coords = getRealCoordinates(e.clientX, e.clientY);
 
@@ -30,7 +32,7 @@ export const MoveHandler = {
 
                
             },
-            onMouseMove: (e: React.MouseEvent, {layout, state, dragOffset, setLayout, getRealCoordinates}: CanvasContext) => {
+            onMouseMove: (e: React.MouseEvent, {layout, state, setLayout, getRealCoordinates}: CanvasContext) => {
                 const { x, y } = getRealCoordinates(e.clientX, e.clientY);
                 if (state.isDragging && layout.selectedPiece !== undefined) {
                     const selectedTrack:TrackPieceBase = layout.tracks.filter((piece: any) => piece.id === layout.selectedPiece)[0];    
@@ -76,25 +78,12 @@ export const MoveHandler = {
                         const { nearestPoint, point } = nearestEndpoint;
                         const dx = nearestPoint.x - point.x;
                         const dy = nearestPoint.y - point.y;
-
-                        // Adjust the position to align the endpoints
-
                         if (["curve", "lhpoint", "rhpoint"].includes(typeFromPiece(selectedTrack))) {
-                            // Special handling for curved tracks
-                            // selectedTrack.setLocation(nearestPoint.x, nearestPoint.y);
-                            selectedTrack.setLocation(
-                                selectedTrack.x + dx, //- dragOffset.current.x,
-                                selectedTrack.y + dy //- dragOffset.current.y,
-                            );
-                        } else if (typeFromPiece(selectedTrack) === 'straight') {
-                                selectedTrack.setLocation(
-                                    selectedTrack.x + dx, //- dragOffset.current.x,
-                                    selectedTrack.y + dy //- dragOffset.current.y,
-                                );
+                            selectedTrack.setLocation(nearestPoint.x, nearestPoint.y);                            
                         }else{
                             selectedTrack.setLocation(
-                                selectedTrack.x + dx - dragOffset.current.x,
-                                selectedTrack.y + dy  - dragOffset.current.y,
+                                selectedTrack.x + dx,
+                                selectedTrack.y + dy
                             );
                         }
                     }

@@ -1,9 +1,10 @@
-import { DraftingCompass, Eraser, MousePointerClick, Move, PencilRuler, RotateCw, Ruler, Stamp } from "lucide-react"
+import { DraftingCompass} from "lucide-react"
 import { Button } from "../ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu"
 import { useMemo } from "react";
 import { toolHandlers } from "@/lib/tools";
 import { useModlerContext } from "@/context/ModlerContext";
+import { Tool } from "@/types";
 
 
 export const ToolMenu = () => {
@@ -21,34 +22,12 @@ export const ToolMenu = () => {
             }
         </DropdownMenuTrigger>
         <DropdownMenuContent>
-            <DropdownMenuItem onClick={() => { setTool("ADD") }}>
-                <MousePointerClick className="h-4 w-4 mr-2" />
-                Add
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => { setTool("MOVE") }}>
-                <PencilRuler className="h-4 w-4 mr-2" />
-                Edit
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => { setTool("DUPLICATE") }}>
-                <Stamp className="h-4 w-4 mr-2" />
-                Clone
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => { setTool("ROTATE") }}>
-                <RotateCw className="h-4 w-4 mr-2" />
-                Rotate
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => { setTool("PANNING") }}>
-                <Move className="h-4 w-4 mr-2" />
-                Pan Canvas
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => { setTool('MEASURE') }}>
-                <Ruler className="h-4 w-4 mr-2" />
-                Measure
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => { setTool('ERASER') }}>
-                <Eraser className="h-4 w-4 mr-2" />
-                Erase
-            </DropdownMenuItem>
+            {Object.entries(toolHandlers).map(([key, tool]) => 
+                <DropdownMenuItem key={key} onClick={() => { setTool(key as Tool) }}>
+                    {tool.icon!({ size: 16, color: "currentColor", fill: "none" })}
+                    <span className='capitalize'>{key.toLowerCase()}</span>
+                </DropdownMenuItem>
+            )}
         </DropdownMenuContent>
     </DropdownMenu>
 }

@@ -50,7 +50,7 @@ export const ModlerProvider = ({ children }: { children: ReactNode }) => {
     const setRotation = (rotation: number) => {
         setState(prev => ({
             ...prev,
-            rotation: prev.rotation + rotation
+            rotation: Math.round((prev.rotation + rotation) / (Math.PI / 12)) * (Math.PI / 12)
         }));
     };
     const setPan = (delta: Point) => {

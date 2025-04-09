@@ -156,6 +156,40 @@ export abstract class TrackPointPiece extends TrackCurvedPiece {
             : new LeftHandedTrackPointPiece(this.code, this.x, this.y, this.rotation, this.startAngle, this.endAngle, this.radius, this.length);
     }
 
+    setLocation(x: number, y: number): void {
+        const { start, end, endArc } = this.getMarkerPoints();
+        const startOffsetX = x - start.x;
+        const startOffsetY = y - start.y;
+        const endOffsetX = x - end.x;
+        const endOffsetY = y - end.y;
+        const endArcOffsetX = x - endArc.x;
+        const endArcOffsetY = y - endArc.y;
+
+        // Determine which endpoint is closer to the new position
+        const startDistance = Math.hypot(startOffsetX, startOffsetY);
+        const endDistance = Math.hypot(endOffsetX, endOffsetY);
+        const endArcDistance = Math.hypot(endArcOffsetX, endArcOffsetY);
+
+        console.log("XXXX",{
+            startDistance,
+            endDistance,
+            endArcDistance,
+        })
+
+        if (startDistance < endDistance) {
+            // Update the position based on the start endpoint
+            this.x += startOffsetX;
+            this.y += startOffsetY;
+        } else if (endArcDistance < endDistance) {
+            this.x += endArcOffsetX;
+            this.y += endArcOffsetY;
+        } else {
+            // Update the position based on the end endpoint
+            this.x += endOffsetX;
+            this.y += endOffsetY;
+        }
+    }
+
     serialise(): TrackPack {
         return {
             id: this.id,

@@ -2,6 +2,16 @@ import { Theme } from "@/types";
 
 export const themes: Theme[] = [
   {
+    name: 'Baseboard',
+    background: '#123D22',
+    gridColor: '#000',
+    gridOpacity: 0.4,
+    icon: {
+      color: "white",
+      fill: "black"
+    }
+  },
+  {
     name: 'Blueprint',
     background: '#1a365d',
     gridColor: '#ffffff',

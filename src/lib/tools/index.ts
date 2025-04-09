@@ -8,11 +8,11 @@ import { DuplicateHandler } from "./duplicate";
 import { AddHandler } from "./add";
 
 export const toolHandlers: Record<Tool, ToolHandler> = {
+    ADD: AddHandler,
     MOVE: MoveHandler,
     ROTATE: RotateHandler,
     ERASER: EraserHandler,
     MEASURE: MeasurementHandler,
     PANNING: PanningHandler,
     DUPLICATE: DuplicateHandler,
-    ADD: AddHandler
 }
